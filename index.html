@@ -389,9 +389,15 @@
     #splash {
       position: fixed; inset: 0; background: var(--bg);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 999; gap: 16px; transition: opacity 0.5s;
+      z-index: 999; gap: 16px;
+      animation: splashHide 0.5s ease-out 2s forwards;
     }
-    #splash.hidden { opacity: 0 !important; pointer-events: none; display: none !important; }
+    @keyframes splashHide {
+      0%   { opacity: 1; pointer-events: all; }
+      99%  { opacity: 0; pointer-events: none; }
+      100% { opacity: 0; pointer-events: none; display: none; visibility: hidden; }
+    }
+    #splash.hidden { display: none !important; }
     #splash img { width: 80px; height: 80px; object-fit: contain; border-radius: 16px; }
     #splash h1 { font-family: 'Space Mono', monospace; color: var(--white); font-size: 20px; letter-spacing: -1px; }
     #splash p { color: var(--accent); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
