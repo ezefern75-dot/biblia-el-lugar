@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Biblia El Lugar">
+  <meta name="theme-color" content="#0d0d1a">
+  <link rel="manifest" href="manifest.json">
+  <title>Biblia El Lugar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ═══════════════════════════════════════════
+       VARIABLES & RESET
+    ═══════════════════════════════════════════ */
+    :root {
+      --bg:        #0d0d1a;
+      --bg2:       #13132a;
+      --bg3:       #1a1a35;
+      --border:    #2a2a50;
+      --accent:    #e2705a;
+      --gold:      #e2c97e;
+      --blue:      #7ab8f5;
+      --text:      #d8d8f0;
+      --text2:     #8888bb;
+      --text3:     #55557a;
+      --white:     #ffffff;
+      --header-bg: #ffffff;
+      --safe-top:  env(safe-area-inset-top, 0px);
+      --safe-bot:  env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Crimson Pro', Georgia, serif; }
+    button { border: none; background: none; cursor: pointer; font-family: inherit; color: inherit; }
+
+    /* ═══════════════════════════════════════════
+       APP SHELL
+    ═══════════════════════════════════════════ */
+    #app { display: flex; flex-direction: column; height: 100%; padding-top: var(--safe-top); }
+
+    /* HEADER */
+    .app-header {
+      background: var(--header-bg);
+      padding: 10px 14px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 2.5px solid var(--accent);
+      flex-shrink: 0;
+    }
+    .app-logo { width: 52px; height: 52px; object-fit: contain; border-radius: 6px; flex-shrink: 0; }
+    .header-titles { flex: 1; }
+    .header-titles h1 { color: #2a2a2a; font-size: 20px; font-weight: 800; font-family: 'Space Mono', monospace; letter-spacing: -0.5px; line-height: 1; }
+    .header-titles p  { color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-top: 3px; }
+    .header-titles small { color: #aaaacc; font-size: 12px; }
+
+    /* TABS */
+    .tabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .tab-btn { flex: 1; padding: 14px 4px; font-size: 14px; font-family: 'Space Mono', monospace; color: var(--text3); text-align: center; transition: all 0.2s; border-bottom: 3px solid transparent; }
+    .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 700; }
+
+    /* SCREENS */
+    .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .screen.active { display: flex; }
+
+    /* ─── CHAPTER SELECTOR ─── */
+    .chapter-grid-container { flex: 1; overflow-y: auto; padding: 18px; }
+    .chap-book-info {
+      background: var(--bg3); border-radius: 16px; padding: 22px;
+      margin-bottom: 20px; text-align: center; border: 1px solid var(--border);
+    }
+    .chap-book-heb { font-size: 44px; font-weight: 700; line-height: 1.1; color: var(--gold); direction: rtl; margin-bottom: 6px; }
+    .chap-book-heb.gre { direction: ltr; color: var(--blue); font-size: 30px; }
+    .chap-book-translit { color: var(--accent); font-size: 18px; font-weight: 700; font-family: 'Space Mono', monospace; }
+    .chap-book-trad { color: var(--text3); font-size: 15px; margin-top: 4px; }
+    .chap-book-es { color: var(--text2); font-size: 15px; margin-top: 5px; font-family: 'Space Mono', monospace; }
+    .chap-count-label { color: var(--text3); font-size: 13px; font-family: 'Space Mono', monospace; margin-top: 8px; }
+    .chapter-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .chap-btn {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 14px; aspect-ratio: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.18s; gap: 4px;
+    }
+    .chap-btn:active { transform: scale(0.92); background: var(--bg2); }
+    .chap-btn.has-data { border-color: rgba(226,112,90,0.5); background: linear-gradient(135deg,#1e1020,#101828); }
+    .chap-btn-num { color: var(--gold); font-size: 22px; font-weight: 700; font-family: 'Space Mono', monospace; line-height: 1; }
+    .chap-btn-heb { font-size: 13px; color: var(--text3); direction: rtl; line-height: 1; }
+    .chap-btn-heb.gre { direction: ltr; color: #4488aa; font-size: 11px; }
+    .chap-btn.has-data .chap-btn-num { color: var(--accent); }
+    .chap-btn.has-data .chap-btn-heb { color: var(--text2); }
+
+    /* ─── COMUNIDAD ─── */
+    .community-header {
+      background: var(--header-bg); padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 2.5px solid var(--accent); flex-shrink: 0;
+    }
+    .community-title { color: #2a2a2a; font-size: 18px; font-weight: 800; font-family: 'Space Mono', monospace; }
+    .community-subtitle { color: var(--accent); font-size: 11px; font-family: 'Space Mono', monospace; margin-top: 2px; }
+    .community-new-topic-btn {
+      background: var(--accent); color: #fff; font-size: 13px;
+      font-family: 'Space Mono', monospace; font-weight: 700;
+      padding: 9px 16px; border-radius: 20px; white-space: nowrap;
+    }
+
+    .topics-list { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+    .topic-card {
+      background: var(--bg3); border-radius: 16px; padding: 16px;
+      border: 1px solid var(--border); cursor: pointer; transition: all 0.18s;
+    }
+    .topic-card:active { transform: scale(0.98); opacity: 0.85; }
+    .topic-card.pinned { border-color: var(--gold); background: linear-gradient(135deg,#1e1a10,#1a1a35); }
+    .topic-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .topic-card-title { color: var(--white); font-size: 17px; font-weight: 700; line-height: 1.3; flex: 1; }
+    .topic-pin-badge { background: var(--gold); color: #1a1a00; font-size: 9px; font-weight: 800;
+      padding: 3px 8px; border-radius: 10px; font-family: 'Space Mono', monospace; white-space: nowrap; flex-shrink: 0; }
+    .topic-verse { color: var(--accent); font-size: 13px; font-family: 'Space Mono', monospace; margin-bottom: 6px; }
+    .topic-desc { color: var(--text2); font-size: 15px; line-height: 1.5; margin-bottom: 10px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .topic-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .topic-author { color: var(--text3); font-size: 12px; font-family: 'Space Mono', monospace; }
+    .topic-author span { color: var(--gold); }
+    .topic-stats { display: flex; gap: 10px; margin-left: auto; }
+    .topic-stat { color: var(--text3); font-size: 12px; font-family: 'Space Mono', monospace; }
+    .topic-stat span { color: var(--text2); }
+
+    /* ── THREAD ── */
+    .thread-header {
+      background: var(--header-bg); padding: 10px 14px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 2px solid var(--accent); flex-shrink: 0;
+    }
+    .thread-back { color: var(--accent); font-size: 28px; font-weight: 300; padding: 2px 8px; }
+    .thread-header-center { flex: 1; text-align: center; }
+    .thread-title { color: #2a2a2a; font-size: 14px; font-weight: 800; font-family: 'Space Mono', monospace;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .thread-verse-ref { color: var(--accent); font-size: 11px; font-family: 'Space Mono', monospace; }
+
+    .thread-messages { flex: 1; overflow-y: auto; padding: 14px 14px 8px; display: flex; flex-direction: column; gap: 12px; }
+
+    .msg-bubble { display: flex; flex-direction: column; max-width: 85%; }
+    .msg-bubble.mine { align-self: flex-end; align-items: flex-end; }
+    .msg-bubble.others { align-self: flex-start; align-items: flex-start; }
+    .msg-author { font-size: 12px; font-family: 'Space Mono', monospace; margin-bottom: 4px; }
+    .msg-bubble.mine .msg-author { color: var(--accent); }
+    .msg-bubble.others .msg-author { color: var(--gold); }
+    .msg-body {
+      padding: 12px 16px; border-radius: 18px; font-size: 16px;
+      line-height: 1.55; position: relative;
+    }
+    .msg-bubble.mine .msg-body { background: linear-gradient(135deg, #e2705a, #c85040); color: #fff; border-bottom-right-radius: 4px; }
+    .msg-bubble.others .msg-body { background: var(--bg3); color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+    .msg-verse-anchor { background: rgba(226,201,126,0.15); border-left: 3px solid var(--gold);
+      border-radius: 8px; padding: 6px 10px; font-size: 13px; color: var(--gold);
+      font-family: 'Space Mono', monospace; margin-bottom: 6px; }
+    .msg-time { font-size: 11px; color: var(--text3); font-family: 'Space Mono', monospace; margin-top: 4px; }
+    .msg-reactions-bar { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .reaction-btn {
+      background: var(--bg3); border: 1px solid var(--border); border-radius: 20px;
+      padding: 4px 10px; font-size: 14px; display: flex; align-items: center; gap: 4px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .reaction-btn.active { background: rgba(226,201,126,0.15); border-color: var(--gold); }
+    .reaction-btn:active { transform: scale(0.9); }
+    .reaction-count { font-size: 13px; color: var(--text2); font-family: 'Space Mono', monospace; }
+    .reply-trigger { font-size: 12px; color: var(--text3); font-family: 'Space Mono', monospace;
+      cursor: pointer; margin-top: 4px; text-decoration: underline; text-underline-offset: 2px; }
+
+    .thread-input-bar {
+      display: flex; align-items: flex-end; gap: 10px;
+      padding: 10px 14px calc(10px + var(--safe-bot));
+      background: var(--bg2); border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    .thread-input {
+      flex: 1; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 20px; padding: 12px 16px; color: var(--text);
+      font-size: 16px; font-family: 'Crimson Pro', serif; outline: none; resize: none;
+      max-height: 120px; overflow-y: auto; line-height: 1.5;
+    }
+    .thread-send-btn {
+      background: var(--accent); color: #fff; width: 46px; height: 46px;
+      border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: transform 0.15s;
+    }
+    .thread-send-btn:active { transform: scale(0.9); }
+
+    /* Replies modal */
+    .reply-bubble { background: var(--bg3); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; border: 1px solid var(--border); }
+    .reply-author { color: var(--gold); font-size: 12px; font-family: 'Space Mono', monospace; margin-bottom: 4px; }
+    .reply-body { color: var(--text); font-size: 15px; line-height: 1.55; }
+    .reply-time { color: var(--text3); font-size: 11px; font-family: 'Space Mono', monospace; margin-top: 4px; }
+
+    /* Online dot */
+    .online-dot { display: inline-block; width: 8px; height: 8px; background: #4caf50;
+      border-radius: 50%; margin-right: 5px; animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    /* Empty state */
+    .empty-community { text-align: center; padding: 50px 20px; color: var(--text3); }
+    .empty-community .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-community p { font-size: 16px; line-height: 1.6; }
+
+    /* ─── BOOK SELECTOR ─── */
+    .book-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 14px; overflow-y: auto; flex: 1; }
+    .book-card {
+      background: var(--bg3); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px 8px; text-align: center; cursor: pointer;
+      transition: all 0.18s; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .book-card:active { transform: scale(0.95); }
+    .book-card.active-book { background: linear-gradient(135deg, #3d1a1a, #1e1a40); border-color: var(--accent); }
+    .book-heb { font-size: 22px; font-weight: 700; direction: rtl; line-height: 1.2; color: var(--gold); }
+    .book-heb.gre { direction: ltr; color: var(--blue); font-size: 15px; }
+    .book-translit { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 11px; font-weight: 700; margin-top: 2px; }
+    .book-trad { color: var(--text3); font-size: 10px; }
+
+    /* ─── READER ─── */
+    .reader-nav {
+      background: var(--header-bg); padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 2px solid var(--accent); flex-shrink: 0;
+    }
+    .reader-nav-arrow { color: var(--accent); font-size: 30px; font-weight: 300; cursor: pointer; padding: 4px 10px; }
+    .reader-nav-center { text-align: center; }
+    .reader-nav-heb { font-size: 22px; font-weight: 700; direction: rtl; line-height: 1; color: var(--accent); }
+    .reader-nav-heb.gre-title { direction: ltr; color: var(--blue); }
+    .reader-nav-sub { font-size: 12px; color: #555; font-family: 'Space Mono', monospace; margin-top: 2px; }
+    .chapter-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .chap-arrow { color: var(--gold); font-size: 26px; cursor: pointer; padding: 4px 12px; }
+    .chap-label { font-family: 'Space Mono', monospace; font-size: 14px; color: var(--text2); }
+
+    .verses-container { flex: 1; overflow-y: auto; padding: 18px 20px 28px; }
+    .verse-row { margin-bottom: 16px; line-height: 1.8; }
+    .verse-num { color: var(--accent); font-size: 13px; font-weight: 700; vertical-align: super; margin-right: 5px; font-family: 'Space Mono', monospace; }
+    .verse-text { font-size: 22px; color: var(--text); }
+    .strong-word { border-bottom: 1px dotted var(--blue); cursor: pointer; transition: background 0.15s, color 0.15s; border-radius: 3px; }
+    .strong-word:active, .strong-word.highlighted { background: rgba(122,184,245,0.15); color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ─── STRONG PANEL (drawer) ─── */
+    .strong-drawer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(170deg, #0d0820, #071828);
+      border-top: 2px solid var(--accent);
+      border-radius: 22px 22px 0 0;
+      padding: 0 20px 24px;
+      padding-bottom: calc(24px + var(--safe-bot));
+      max-height: 80vh; overflow-y: auto;
+      transform: translateY(100%);
+      transition: transform 0.32s cubic-bezier(0.32, 0, 0.22, 1);
+      z-index: 100;
+      box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
+    }
+    .strong-drawer.open { transform: translateY(0); }
+    .drawer-handle { width: 44px; height: 5px; background: var(--border); border-radius: 3px; margin: 14px auto 16px; }
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; display: none; }
+    .drawer-overlay.open { display: block; }
+
+    .sp-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .sp-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sp-num { background: var(--accent); color: #fff; font-size: 15px; font-weight: 800; padding: 6px 16px; border-radius: 20px; font-family: 'Space Mono', monospace; }
+    .sp-lang { background: #1a1040; color: #aaaadd; font-size: 13px; padding: 6px 12px; border-radius: 20px; border: 1px solid #3a2a60; }
+    .sp-close { color: var(--text3); font-size: 34px; cursor: pointer; line-height: 1; padding: 0 4px; }
+
+    .sp-word-es { color: var(--text2); font-size: 18px; margin-bottom: 12px; }
+    .sp-word-es strong { color: var(--white); font-size: 21px; }
+
+    .sp-orig-block {
+      background: rgba(10,10,30,0.8); border-radius: 14px;
+      padding: 20px; margin-bottom: 16px; text-align: center;
+      border: 1px solid var(--border);
+    }
+    .sp-orig-letters { font-size: 60px; font-weight: 700; line-height: 1.1; margin-bottom: 10px; }
+    .sp-orig-letters.heb { color: var(--gold); direction: rtl; }
+    .sp-orig-letters.gre { color: var(--blue); direction: ltr; }
+    .sp-translit-trad { font-size: 17px; color: var(--text2); font-style: italic; }
+    .sp-translit-trad .sep { color: var(--text3); margin: 0 10px; }
+    .sp-translit-trad .trad { color: var(--gold); font-style: normal; font-weight: 600; }
+    .sp-translit-trad .trad-gre { color: var(--blue); font-style: normal; font-weight: 600; }
+
+    .sp-section { margin-bottom: 16px; }
+    .sp-section-title { color: var(--accent); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-family: 'Space Mono', monospace; }
+    .sp-def { color: #c0c0dc; font-size: 18px; line-height: 1.75; }
+    .sp-uso-teo { color: #b0d0ff; font-size: 17px; line-height: 1.75; font-style: italic; border-left: 3px solid var(--blue); padding-left: 14px; margin-top: 10px; }
+    .sp-nota-cultural { color: #ccbb88; font-size: 16px; line-height: 1.7; background: rgba(226,201,126,0.07); border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+    .sp-frases { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .sp-frase { background: #0f0f28; border-radius: 10px; padding: 10px 14px; font-size: 16px; color: var(--text2); font-family: 'Crimson Pro', serif; }
+    .sp-frase strong { color: var(--gold); }
+
+    .sp-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+    .sp-root {
+      background: #0f0f28; border-left: 4px solid var(--gold);
+      border-radius: 0 12px 12px 0; padding: 14px 16px; margin-bottom: 12px;
+    }
+    .sp-root-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+    .sp-root-num { background: #1a1535; color: var(--gold); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; font-family: 'Space Mono', monospace; }
+    .sp-root-letters { font-size: 28px; font-weight: 700; line-height: 1; }
+    .sp-root-letters.heb { color: var(--gold); direction: rtl; }
+    .sp-root-letters.gre { color: var(--blue); direction: ltr; }
+    .sp-root-link { margin-left: auto; color: var(--accent); font-size: 13px; text-decoration: underline; cursor: pointer; font-family: 'Space Mono', monospace; }
+    .sp-root-sub { color: var(--text2); font-size: 14px; font-style: italic; margin-bottom: 6px; }
+    .sp-root-sub .sep { color: var(--text3); margin: 0 6px; }
+    .sp-root-sub .trad { color: var(--gold); font-style: normal; font-weight: 600; }
+    .sp-root-def { color: #9999bb; font-size: 16px; line-height: 1.65; }
+
+    .sp-usage { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sp-tag { background: #111830; color: #7788aa; font-size: 13px; padding: 5px 12px; border-radius: 12px; border: 1px solid #1e2a40; font-family: 'Space Mono', monospace; }
+    .sp-tag.hi { background: #1e1000; color: var(--gold); border-color: #403010; }
+
+    /* ─── SEARCH SCREEN ─── */
+    .search-header { padding: 14px 16px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .search-box {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 28px; padding: 12px 20px;
+    }
+    .search-box input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-size: 18px; font-family: 'Crimson Pro', serif;
+    }
+    .search-box input::placeholder { color: var(--text3); }
+    .search-icon { color: var(--text2); font-size: 20px; }
+    .search-results { flex: 1; overflow-y: auto; padding: 14px 16px; }
+    .search-count { font-family: 'Space Mono', monospace; font-size: 13px; color: var(--text3); margin-bottom: 14px; }
+    .search-count span { color: var(--accent); }
+    .result-card {
+      background: var(--bg3); border-left: 4px solid var(--accent);
+      border-radius: 0 12px 12px 0; padding: 14px 16px; margin-bottom: 12px; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .result-card:active { opacity: 0.7; }
+    .result-ref { font-family: 'Space Mono', monospace; color: var(--gold); font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .result-text { font-size: 18px; color: var(--text2); line-height: 1.65; }
+    .result-text em { color: var(--white); font-style: normal; font-weight: 700; background: rgba(226,112,90,0.15); border-radius: 3px; padding: 0 3px; }
+    .result-strong { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 13px; margin-top: 6px; }
+
+    /* ─── NOTES SCREEN ─── */
+    .notes-header {
+      padding: 16px 18px; background: var(--bg2); border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+    }
+    .notes-header h2 { font-family: 'Space Mono', monospace; font-size: 18px; color: var(--gold); }
+    .add-note-btn { background: var(--accent); color: #fff; font-size: 30px; width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; }
+    .notes-list { flex: 1; overflow-y: auto; padding: 16px 18px; }
+    .note-card { background: var(--bg3); border-radius: 14px; padding: 16px; margin-bottom: 14px; border: 1px solid var(--border); }
+    .note-ref { font-family: 'Space Mono', monospace; color: var(--accent); font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+    .note-body { font-size: 18px; color: var(--text2); line-height: 1.75; }
+    .note-date { font-family: 'Space Mono', monospace; color: var(--text3); font-size: 12px; margin-top: 10px; text-align: right; }
+
+    /* Note Editor Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: flex-end; }
+    .modal-overlay.open { display: flex; }
+    .note-editor {
+      background: var(--bg2); border-radius: 22px 22px 0 0; width: 100%;
+      padding: 24px 20px calc(24px + var(--safe-bot));
+      border-top: 2px solid var(--accent);
+    }
+    .note-editor h3 { font-family: 'Space Mono', monospace; color: var(--gold); font-size: 17px; margin-bottom: 16px; }
+    .note-editor textarea {
+      width: 100%; height: 170px; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; color: var(--text); font-size: 19px;
+      font-family: 'Crimson Pro', serif; outline: none; resize: none;
+    }
+    .note-editor-actions { display: flex; gap: 14px; margin-top: 16px; }
+    .btn { padding: 15px 28px; border-radius: 28px; font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+
+    /* ─── BOTTOM NAV ─── */
+    .bottom-nav {
+      display: flex; background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding-bottom: var(--safe-bot);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      flex: 1; padding: 14px 4px 12px; display: flex; flex-direction: column;
+      align-items: center; gap: 5px; font-size: 13px; color: var(--text3);
+      font-family: 'Space Mono', monospace; transition: color 0.15s;
+    }
+    .nav-btn.active { color: var(--accent); }
+    .nav-icon { font-size: 28px; }
+
+    /* ─── SPLASH / LOADING ─── */
+    #splash {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 999; gap: 16px;
+    }
+    #splash img { width: 80px; height: 80px; object-fit: contain; border-radius: 16px; }
+    #splash h1 { font-family: 'Space Mono', monospace; color: var(--white); font-size: 20px; letter-spacing: -1px; }
+    #splash p { color: var(--accent); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
+    .splash-bar { width: 160px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+    .splash-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 2px; animation: load 1.5s ease-out forwards; }
+    @keyframes load { from { width: 0%; } to { width: 100%; } }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAAAAAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCABQAFADASIAAhEBAxEB/8QAGgABAAMBAQEAAAAAAAAAAAAAAAMEBQYCAf/EAC0QAAEDAgUDAgUFAAAAAAAAAAEAAgMEEQUSITFREyJBFHEyYYGRsRUjUpLB/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAMCBP/EACERAAMAAgICAgMAAAAAAAAAAAABAgMRIUESMRNRYXGh/9oADAMBAAIRAxEAPwDv0REAREQBERAEREAREQBERAFDVVMdLF1JTpsANyVMqWLwxyUL3SSNjEffndsLcrNb1wbhS6Xl6KVVVVFdTRyUTZA3MQ9rfiB8bLQopy5ghmdeoYwF486rlamCWSnfA2UxF5D2uzWaT7jcEH8LQpJ/RSNnuC1/bldcvLALC3vYb8KE323+zsyYuHMrjr87OkRZtLjEdRO2IxOYXaAk3WkrzSrlHHcVD1SCIi0YCIiALKxWUzSenhqgx7WkmJvxPPgDwtVZUmDNNeasSuPdnyW3PF1PJtrSRbC5Tbp6+jCpa97ozMWztYH5Q2WS+f8AlpbS35XrEjUskd0YGzyZjmac2ZwJ0IsdtgpJY6iuxPpvYWvc7UWsGjyt04RT9pa6VrmvLw4P1Fzf7KMLybaXB15H8cpN8vtfwzaRtDDicUf7omabE5rsz21HO66FUxhlKKv1WQ9S+bfS/NlcVscud7OXNkVtNb9dhERUIBERAU6vEGUtVBTmNz3z3y2IA0IHk/NTU1Q2pY9zAQGyOjN+Wm3+L5PRwVEscsjXZ475XNeW224PyChjihpJZnwxPBc67hncQSdSbbDXhAfYsRikipZAx4FS8sbe2hAJ1/qoP1uEticyGR2dge65a0MaXZQSSeRsvLaOj6boPTTNYJAR3u0dc6tN9Ppyj6Oimjha6ic1rAIw0Et7b7G24uPKAtjEITiLqLu6jWZr+Pb3sQfqo8MxSLEs/SY9haGu7iDob22J102Oq8xU9K6qbMKUtmL3P6hvmvqPtbxtsrFLRU9GCKeMRggA2J1tsgLCIiAIiIAiIgCIiAIiIAiIgP/Z" alt="El Lugar">
+  <h1>BIBLIA EL LUGAR</h1>
+  <p>Comunidad · RVR1960 · Strong</p>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+  <div id="splash-msg" style="color:var(--text2);font-size:13px;margin-top:8px;font-family:'Space Mono',monospace;">Cargando...</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <img class="app-logo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAAAAAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCABQAFADASIAAhEBAxEB/8QAGgABAAMBAQEAAAAAAAAAAAAAAAMEBQYCAf/EAC0QAAEDAgUDAgUFAAAAAAAAAAEAAgMEEQUSITFREyJBFHEyYYGRsRUjUpLB/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAMCBP/EACERAAMAAgICAgMAAAAAAAAAAAABAgMRIUESMRNRYXGh/9oADAMBAAIRAxEAPwDv0REAREQBERAEREAREQBERAFDVVMdLF1JTpsANyVMqWLwxyUL3SSNjEffndsLcrNb1wbhS6Xl6KVVVVFdTRyUTZA3MQ9rfiB8bLQopy5ghmdeoYwF486rlamCWSnfA2UxF5D2uzWaT7jcEH8LQpJ/RSNnuC1/bldcvLALC3vYb8KE323+zsyYuHMrjr87OkRZtLjEdRO2IxOYXaAk3WkrzSrlHHcVD1SCIi0YCIiALKxWUzSenhqgx7WkmJvxPPgDwtVZUmDNNeasSuPdnyW3PF1PJtrSRbC5Tbp6+jCpa97ozMWztYH5Q2WS+f8AlpbS35XrEjUskd0YGzyZjmac2ZwJ0IsdtgpJY6iuxPpvYWvc7UWsGjyt04RT9pa6VrmvLw4P1Fzf7KMLybaXB15H8cpN8vtfwzaRtDDicUf7omabE5rsz21HO66FUxhlKKv1WQ9S+bfS/NlcVscud7OXNkVtNb9dhERUIBERAU6vEGUtVBTmNz3z3y2IA0IHk/NTU1Q2pY9zAQGyOjN+Wm3+L5PRwVEscsjXZ475XNeW224PyChjihpJZnwxPBc67hncQSdSbbDXhAfYsRikipZAx4FS8sbe2hAJ1/qoP1uEticyGR2dge65a0MaXZQSSeRsvLaOj6boPTTNYJAR3u0dc6tN9Ppyj6Oimjha6ic1rAIw0Et7b7G24uPKAtjEITiLqLu6jWZr+Pb3sQfqo8MxSLEs/SY9haGu7iDob22J102Oq8xU9K6qbMKUtmL3P6hvmvqPtbxtsrFLRU9GCKeMRggA2J1tsgLCIiAIiIAiIgCIiAIiIAiIgP/Z" alt="El Lugar">
+    <div class="header-titles">
+      <h1>BIBLIA EL LUGAR</h1>
+      <p>Comunidad</p>
+      <small>Reina-Valera 1960 · Concordancia Strong</small>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchCovenant('old')">Antiguo Pacto</button>
+    <button class="tab-btn" onclick="switchCovenant('new')">Pacto Renovado</button>
+  </div>
+
+  <!-- SCREEN: BIBLE / BOOK SELECTOR -->
+  <div class="screen active" id="screen-bible">
+    <div class="book-grid" id="book-grid"></div>
+  </div>
+
+  <!-- SCREEN: CHAPTER SELECTOR -->
+  <div class="screen" id="screen-chapters">
+    <div class="reader-nav">
+      <button class="reader-nav-arrow" onclick="goBackToBooks()">‹</button>
+      <div class="reader-nav-center">
+        <div class="reader-nav-heb" id="chap-sel-heb"></div>
+        <div class="reader-nav-sub" id="chap-sel-sub"></div>
+      </div>
+      <button class="reader-nav-arrow" style="opacity:0">›</button>
+    </div>
+    <div class="chapter-grid-container" id="chapter-grid-container"></div>
+  </div>
+
+  <!-- SCREEN: READER -->
+  <div class="screen" id="screen-reader">
+    <div class="reader-nav">
+      <button class="reader-nav-arrow" onclick="goBack()">‹</button>
+      <div class="reader-nav-center">
+        <div class="reader-nav-heb" id="reader-heb-title"></div>
+        <div class="reader-nav-sub" id="reader-sub-title"></div>
+      </div>
+      <button class="reader-nav-arrow" style="opacity:0">›</button>
+    </div>
+    <div class="chapter-bar">
+      <button class="chap-arrow" onclick="changeChapter(-1)">‹</button>
+      <button class="chap-label" id="chap-label" onclick="goBack()" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px;">Capítulo 1</button>
+      <button class="chap-arrow" onclick="changeChapter(1)">›</button>
+    </div>
+    <div class="verses-container" id="verses-container"></div>
+  </div>
+
+  <!-- SCREEN: SEARCH -->
+  <div class="screen" id="screen-search">
+    <div class="search-header">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input" placeholder="Buscar palabra o referencia..." oninput="doSearch(this.value)">
+      </div>
+    </div>
+    <div class="search-results" id="search-results">
+      <p style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center;">Escribe para buscar en toda la Biblia</p>
+    </div>
+  </div>
+
+  <!-- SCREEN: NOTES -->
+  <div class="screen" id="screen-notes">
+    <div class="notes-header">
+      <h2>📝 Mis Notas</h2>
+      <button class="add-note-btn" onclick="openNoteEditor(null)">+</button>
+    </div>
+    <div class="notes-list" id="notes-list"></div>
+  </div>
+
+  <!-- SCREEN: COMUNIDAD -->
+  <div class="screen" id="screen-community">
+
+    <!-- Vista: Lista de temas -->
+    <div id="community-topics-view">
+      <div class="community-header">
+        <div class="community-header-left">
+          <div class="community-title">🕊️ Comunidad</div>
+          <div class="community-subtitle" id="online-count">Cargando...</div>
+        </div>
+        <button class="community-new-topic-btn" id="new-topic-btn" onclick="openNewTopic()" style="display:none">+ Tema</button>
+      </div>
+      <div id="topics-list" class="topics-list"></div>
+    </div>
+
+    <!-- Vista: Hilo de un tema -->
+    <div id="community-thread-view" style="display:none; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="thread-header">
+        <button class="thread-back" onclick="backToTopics()">‹</button>
+        <div class="thread-header-center">
+          <div class="thread-title" id="thread-title-display"></div>
+          <div class="thread-verse-ref" id="thread-verse-display"></div>
+        </div>
+        <div style="width:36px"></div>
+      </div>
+      <div class="thread-messages" id="thread-messages"></div>
+      <div class="thread-input-bar">
+        <textarea class="thread-input" id="thread-input" placeholder="Escribe tu reflexión..." rows="1"
+          oninput="autoResize(this)" onkeydown="handleMsgKey(event)"></textarea>
+        <button class="thread-send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showScreen('bible',this)"><span class="nav-icon">📖</span>Biblia</button>
+    <button class="nav-btn" onclick="showScreen('search',this)"><span class="nav-icon">🔍</span>Buscar</button>
+    <button class="nav-btn" onclick="showScreen('notes',this)"><span class="nav-icon">📝</span>Notas</button>
+    <button class="nav-btn" id="nav-community" onclick="showScreen('community',this)"><span class="nav-icon">🕊️</span>Comunidad</button>
+  </nav>
+</div>
+
+<!-- MODAL: ELEGIR NOMBRE -->
+<div class="modal-overlay" id="name-modal">
+  <div class="note-editor">
+    <h3 style="color:var(--gold);font-size:19px;margin-bottom:6px;">Bienvenido a la Comunidad</h3>
+    <p style="color:var(--text2);font-size:15px;margin-bottom:16px;">¿Con qué nombre querés participar?</p>
+    <input type="text" id="name-input" maxlength="30"
+      placeholder="Tu nombre..."
+      style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+             padding:14px 16px;color:var(--text);font-size:18px;font-family:'Crimson Pro',serif;outline:none;"
+      onkeydown="if(event.key==='Enter')confirmName()">
+    <div style="margin-top:14px;display:flex;gap:12px;">
+      <button class="btn btn-primary" style="flex:1;font-size:16px;" onclick="confirmName()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVO TEMA (solo líder) -->
+<div class="modal-overlay" id="topic-modal">
+  <div class="note-editor">
+    <h3 style="color:var(--gold);font-size:17px;margin-bottom:14px;">Nuevo Tema de Reflexión</h3>
+    <input type="text" id="topic-title-input" maxlength="80" placeholder="Título del tema..."
+      style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+             padding:13px 16px;color:var(--text);font-size:17px;font-family:'Space Mono',monospace;
+             outline:none;margin-bottom:12px;">
+    <input type="text" id="topic-verse-input" maxlength="60" placeholder="Versículo (ej: Juan 3:16) — opcional"
+      style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+             padding:13px 16px;color:var(--text);font-size:16px;font-family:'Crimson Pro',serif;
+             outline:none;margin-bottom:12px;">
+    <textarea id="topic-desc-input" rows="3" placeholder="Descripción o reflexión inicial..."
+      style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+             padding:13px 16px;color:var(--text);font-size:16px;font-family:'Crimson Pro',serif;
+             outline:none;resize:none;"></textarea>
+    <div style="margin-top:14px;display:flex;gap:12px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="createTopic()">Publicar</button>
+      <button class="btn btn-secondary" onclick="closeTopicModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: HILO DE RESPUESTAS -->
+<div class="modal-overlay" id="replies-modal">
+  <div class="note-editor" style="max-height:75vh;display:flex;flex-direction:column;padding-bottom:calc(16px + var(--safe-bot));">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h3 style="color:var(--gold);font-size:16px;" id="replies-modal-title">Respuestas</h3>
+      <button onclick="closeRepliesModal()" style="color:var(--text3);font-size:28px;line-height:1;">×</button>
+    </div>
+    <div id="replies-list" style="flex:1;overflow-y:auto;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:10px;align-items:flex-end;">
+      <textarea id="reply-input" rows="1" placeholder="Responder..."
+        style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:12px;
+               padding:12px 14px;color:var(--text);font-size:16px;font-family:'Crimson Pro',serif;
+               outline:none;resize:none;" oninput="autoResize(this)"></textarea>
+      <button class="thread-send-btn" onclick="sendReply()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- STRONG DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeStrong()"></div>
+<div class="strong-drawer" id="strong-drawer">
+  <div class="drawer-handle"></div>
+  <div id="strong-content"></div>
+</div>
+
+<!-- NOTE EDITOR MODAL -->
+<div class="modal-overlay" id="note-modal">
+  <div class="note-editor">
+    <h3 id="note-modal-title">Nueva Nota</h3>
+    <textarea id="note-textarea" placeholder="Escribe tu nota aquí..."></textarea>
+    <div class="note-editor-actions">
+      <button class="btn btn-primary" onclick="saveNote()">Guardar</button>
+      <button class="btn btn-secondary" onclick="closeNoteEditor()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DATA — LIBROS
+// ═══════════════════════════════════════════════
+const BOOKS = {
+  old: [
+    { id:'gen',  heb:'בְּרֵאשִׁית', translit:'Bereshit',    trad:'En el principio',  es:'Génesis',      chapters:50, lang:'heb' },
+    { id:'exo',  heb:'שְׁמוֹת',    translit:'Shemot',       trad:'Nombres',          es:'Éxodo',        chapters:40, lang:'heb' },
+    { id:'lev',  heb:'וַיִּקְרָא', translit:'Vayikrá',      trad:'Y llamó',          es:'Levítico',     chapters:27, lang:'heb' },
+    { id:'num',  heb:'בְּמִדְבַּר',translit:'Bamidbar',     trad:'En el desierto',   es:'Números',      chapters:36, lang:'heb' },
+    { id:'deu',  heb:'דְּבָרִים',  translit:'Devarim',      trad:'Palabras',         es:'Deuteronomio', chapters:34, lang:'heb' },
+    { id:'jos',  heb:'יְהוֹשֻׁעַ', translit:'Yehoshúa',     trad:'YHWH salva',       es:'Josué',        chapters:24, lang:'heb' },
+    { id:'jdg',  heb:'שׁוֹפְטִים', translit:'Shoftim',      trad:'Jueces',           es:'Jueces',       chapters:21, lang:'heb' },
+    { id:'rut',  heb:'רוּת',       translit:'Rut',           trad:'Amistad fiel',     es:'Rut',          chapters:4,  lang:'heb' },
+    { id:'1sa',  heb:'שְׁמוּאֵל א',translit:'Shemuel A',    trad:'Nombre de D-os',   es:'1 Samuel',     chapters:31, lang:'heb' },
+    { id:'2sa',  heb:'שְׁמוּאֵל ב',translit:'Shemuel B',    trad:'Nombre de D-os',   es:'2 Samuel',     chapters:24, lang:'heb' },
+    { id:'1ki',  heb:'מְלָכִים א', translit:'Melakhim A',   trad:'Reyes',            es:'1 Reyes',      chapters:22, lang:'heb' },
+    { id:'2ki',  heb:'מְלָכִים ב', translit:'Melakhim B',   trad:'Reyes',            es:'2 Reyes',      chapters:25, lang:'heb' },
+    { id:'psa',  heb:'תְּהִלִּים', translit:'Tehilim',      trad:'Alabanzas',        es:'Salmos',       chapters:150,lang:'heb' },
+    { id:'pro',  heb:'מִשְׁלֵי',   translit:'Mishlei',      trad:'Proverbios',       es:'Proverbios',   chapters:31, lang:'heb' },
+    { id:'isa',  heb:'יְשַׁעְיָהוּ',translit:'Yeshayahu',   trad:'YHWH salva',       es:'Isaías',       chapters:66, lang:'heb' },
+    { id:'jer',  heb:'יִרְמְיָהוּ',translit:'Yirmeyahu',    trad:'YHWH exalta',      es:'Jeremías',     chapters:52, lang:'heb' },
+    { id:'eze',  heb:'יְחֶזְקֵאל', translit:'Yejezkel',     trad:'D-os fortalece',   es:'Ezequiel',     chapters:48, lang:'heb' },
+    { id:'dan',  heb:'דָּנִיֵּאל', translit:'Daniel',       trad:'D-os es mi juez',  es:'Daniel',       chapters:12, lang:'heb' },
+  ],
+  new: [
+    { id:'mat',  heb:'Ματθαῖος',   translit:'Mattityahu',   trad:'Don de YHWH',      es:'Mateo',        chapters:28, lang:'gre' },
+    { id:'mrk',  heb:'Μάρκος',     translit:'Markos',       trad:'Defensor',         es:'Marcos',       chapters:16, lang:'gre' },
+    { id:'luk',  heb:'Λουκᾶς',     translit:'Loukas',       trad:'Luminoso',         es:'Lucas',        chapters:24, lang:'gre' },
+    { id:'jhn',  heb:'Ἰωάννης',    translit:'Yojanán',      trad:'YHWH es gracia',   es:'Juan',         chapters:21, lang:'gre' },
+    { id:'act',  heb:'Πράξεις',    translit:'Praxeis',      trad:'Hechos, actos',    es:'Hechos',       chapters:28, lang:'gre' },
+    { id:'rom',  heb:'Ῥωμαίους',   translit:'Rhomaiois',    trad:'A los Romanos',    es:'Romanos',      chapters:16, lang:'gre' },
+    { id:'1co',  heb:'Κορινθίους Α',translit:'Korinthious A',trad:'1 Corintios',     es:'1 Corintios',  chapters:16, lang:'gre' },
+    { id:'2co',  heb:'Κορινθίους Β',translit:'Korinthious B',trad:'2 Corintios',     es:'2 Corintios',  chapters:13, lang:'gre' },
+    { id:'gal',  heb:'Γαλάτας',    translit:'Galatas',      trad:'A los Gálatas',    es:'Gálatas',      chapters:6,  lang:'gre' },
+    { id:'eph',  heb:'Ἐφεσίους',   translit:'Ephesious',    trad:'A los Efesios',    es:'Efesios',      chapters:6,  lang:'gre' },
+    { id:'phi',  heb:'Φιλιππησίους',translit:'Philippesious',trad:'Filipenses',      es:'Filipenses',   chapters:4,  lang:'gre' },
+    { id:'col',  heb:'Κολοσσαεῖς', translit:'Kolossaeis',   trad:'Colosenses',       es:'Colosenses',   chapters:4,  lang:'gre' },
+    { id:'rev',  heb:'Ἀποκάλυψις', translit:'Apokalypsis',  trad:'Revelación',       es:'Apocalipsis',  chapters:22, lang:'gre' },
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════════════
+//  CONCORDANCIA STRONG COMPLETA — Biblia El Lugar
+//  Más completa que E-Sword: raíces, cognados, usos bibliológicos,
+//  frases relacionadas, links entre entradas, notas culturales
+// ═══════════════════════════════════════════════════════════════════
+const STRONG_DATA = {
+  'H1': { num:'H1', lang:'heb', origLetters:'אָב', translit:'ʾāb', pronunciacion:'awb', trad:'padre, antepasado, fundador', categoria:'Sustantivo masculino', def:`Padre en todos los sentidos: progenitor biológico, ancestro, fundador de un linaje o clan, figura de autoridad paternal. También usado metafóricamente de D-os como Padre de Israel y de los creyentes. En el pensamiento hebreo, el padre es la fuente de identidad, nombre y herencia del hijo.`, usoBibliologico:`D-os como Padre (Sal 89:26; Is 63:16; 64:8). El título "Padre" aplicado a D-os en el AT anticipa la revelación plena del Nuevo Pacto donde Yeshúa enseña a orar "Abba, Padre" (Rom 8:15).`, roots:[{ num:'H2', letters:'אַב', lang:'heb', translit:'ʾab', trad:'fresco, verde (arameo)', def:'Forma aramea relacionada. Aparece en nombres propios compuestos como Abner.' }], frasesRelacionadas:['בֵּית אָב — beit av — casa del padre (clan familiar)','אַבָּא — Abbá — forma aramea íntima de "papá"'], usage:[{label:'1.211 veces',hi:true},{label:'Gén ×165'},{label:'1Cr ×180'},{label:'Sal ×7'}], notaCultural:`En la cultura semítica el padre era la máxima autoridad del clan (beit av). Su nombre definía la identidad de todos los descendientes.` },
+
+  'H7225': { num:'H7225', lang:'heb', origLetters:'רֵאשִׁית', translit:'rēʾšît', pronunciacion:'ray-sheeth', trad:'principio, primicia, lo primero, cabeza', categoria:'Sustantivo femenino', def:`Primera parte de algo en tiempo, orden o rango. Deriva de רֹאשׁ (H7218, "cabeza"). Tiene doble sentido: temporal (el inicio cronológico) y jerárquico (lo supremo, lo más importante). En Gén 1:1 marca no solo el inicio del tiempo sino la preeminencia absoluta de D-os sobre toda la creación.`, usoBibliologico:`"בְּרֵאשִׁית" (Bereshit, "en el principio") es la primera palabra de las Escrituras. Juan 1:1 usa el equivalente griego ἐν ἀρχῇ (G746) estableciendo un paralelo deliberado con la creación.`, roots:[{ num:'H7218', letters:'רֹאשׁ', lang:'heb', translit:'rōʾš', trad:'cabeza, cima, jefe, primero', def:'Raíz primaria. La cabeza como lo más alto y lo más importante. De aquí deriva reshit: lo que está en la cabeza del tiempo.' }], frasesRelacionadas:['בְּרֵאשִׁית בָּרָא — Bereshit bara — En el principio creó','רֵאשִׁית חָכְמָה — reshit jokhmah — El principio de la sabiduría (Prov 9:10)'], usage:[{label:'51 veces',hi:true},{label:'Gén ×1'},{label:'Pro ×6'},{label:'Is ×6'},{label:'Jer ×12'}], notaCultural:`Las "primicias" (bikkurim) del campo eran la reshit — lo primero y mejor ofrecido a D-os.` },
+
+  'H1254': { num:'H1254', lang:'heb', origLetters:'בָּרָא', translit:'bārāʾ', pronunciacion:'baw-raw', trad:'crear de la nada, producir algo radicalmente nuevo', categoria:'Verbo Qal', def:`El verbo hebreo más exclusivo del vocabulario bibliológico: SIEMPRE tiene a D-os como sujeto en el AT. Nunca se usa para describir la actividad creadora humana. Expresa la creación de algo absolutamente nuevo, sin material preexistente (creatio ex nihilo). Se distingue de H6213 (asah, "hacer con material existente") y H3335 (yatsar, "modelar/formar como alfarero").`, usoBibliologico:`Los tres verbos de la creación en Génesis: bārāʾ (crear de la nada), asah (hacer/organizar) y yatsar (modelar) se usan con precisión bibliológica. Bārāʾ aparece en momentos clave: materia (1:1), vida animal (1:21) y el ser humano como imagen de D-os (1:27). En Isaías 65:17 anuncia la nueva creación escatológica.`, roots:[{ num:'H1262', letters:'בָּרָה', lang:'heb', translit:'bārāh', trad:'comer, seleccionar, elegir lo mejor', def:'Raíz verbal relacionada. La conexión semántica sugiere que crear implica un acto de elección soberana — D-os selecciona y trae a existencia lo que elige.' }, { num:'H1285', letters:'בְּרִית', lang:'heb', translit:'bərît', trad:'pacto, alianza', def:'Comparte familia semántica. El acto creador de D-os es en sí mismo un acto pactual — al crear establece una relación de responsabilidad y cuidado.' }], frasesRelacionadas:['בָּרָא אֱלֹהִים — bara Elohim — creó D-os','בְּרִיאָה חֲדָשָׁה — beriá jadashah — nueva creación'], usage:[{label:'48 veces',hi:true},{label:'Gén ×6'},{label:'Isa ×20'},{label:'Sal ×5'},{label:'Ez ×3'}], notaCultural:`La gramática de Gén 1:1 es debatida: ¿frase independiente o cláusula temporal? La posición tradicional: una declaración absoluta de creación soberana ex nihilo.` },
+
+  'H430': { num:'H430', lang:'heb', origLetters:'אֱלֹהִים', translit:'ʾĕlōhîm', pronunciacion:'el-o-heem', trad:'D-os, dioses (plural de majestad)', categoria:'Sustantivo masculino plural', def:`La forma plural de אֵל (H410). El plural puede indicar: (1) multiplicidad real (dioses paganos), (2) pluralidad de majestad intensificada. Con verbos en singular siempre se refiere al D-os único de Israel. El plural de majestad expresa la plenitud absoluta e infinita del ser divino, anticipando la revelación trinitaria del NT.`, usoBibliologico:`ʾĔlōhîm aparece 2.602 veces. En Gén 1 es el nombre del D-os Creador. YHWH (H3068) se introduce en Gén 2 como el D-os relacional y pactual. La combinación "YHWH Elohim" (Gén 2:4) une ambos atributos.`, roots:[{ num:'H410', letters:'אֵל', lang:'heb', translit:'ʾēl', trad:'poder, el D-os poderoso', def:'Raíz primaria. Designa fuerza y poder absolutos. Aparece en nombres propios: Israel (luchó con El), Daniel (El es mi juez), Ezequiel (El fortalece).' }, { num:'H433', letters:'אֱלוֹהַּ', lang:'heb', translit:'ʾĕlôah', trad:'D-os (forma singular poética)', def:'Singular poético de Elohim, frecuente en Job. Usado cuando se medita sobre D-os en su singularidad.' }], frasesRelacionadas:['אֱלֹהִים חַיִּים — Elohim jayyim — D-os viviente','אֵל שַׁדַּי — El Shaddai — D-os Todopoderoso','אֵל עֶלְיוֹן — El Elyón — D-os Altísimo','אֵל רֹאִי — El Roi — D-os que me ve'], usage:[{label:'2.602 veces',hi:true},{label:'Gén ×200'},{label:'Sal ×365'},{label:'Job ×55'},{label:'Is ×210'}], notaCultural:`Los nombres compuestos de D-os revelan dimensiones de su carácter: El Shaddai (poder nutridor), YHWH Yireh (el que provee), YHWH Rapha (el que sana).` },
+
+  'H3068': { num:'H3068', lang:'heb', origLetters:'יְהוָה', translit:'YHWH / Yahweh', pronunciacion:'yah-weh', trad:'El que ES, el que SERÁ, el que ERA — el nombre propio de D-os', categoria:'Nombre propio divino (Tetragrámaton)', def:`El nombre más sagrado de D-os en las Escrituras hebreas, compuesto por יהוה (Yod-He-Vav-He). Deriva del verbo H1961 (hayah, "ser/existir") y expresa la existencia absoluta y eterna de D-os — el que existe por sí mismo, sin causa ni origen. Los judíos lo pronuncian "Adonai" por reverencia. En la LXX se traduce como Κύριος (Señor).`, usoBibliologico:`YHWH es el nombre del pacto — revelado a Moisés en la zarza ardiente (Éx 3:14): "YO SOY EL QUE SOY". Es el nombre que distingue al D-os de Israel de todos los dioses. Yahshua aplica este nombre a sí mismo en Juan 8:58: "Antes que Abraham fuera, YO SOY."`, roots:[{ num:'H1961', letters:'הָיָה', lang:'heb', translit:'hāyāh', trad:'ser, existir, llegar a ser, acontecer', def:'Verbo raíz del Tetragrámaton. En Éx 3:14 D-os define su nombre: אֶהְיֶה אֲשֶׁר אֶהְיֶה (YO SOY EL QUE SOY). YHWH es la tercera persona: "ÉL ES".' }, { num:'H3050', letters:'יָהּ', lang:'heb', translit:'Yāh', trad:'YHWH (forma abreviada)', def:'Forma corta del nombre divino usada en poesía y alabanza. Base de "aleluya" (hallelu-Yah = alaben a Yah).' }], frasesRelacionadas:['יְהוָה יִרְאֶה — YHWH Yireh — El Señor proveerá (Gén 22:14)','יְהוָה רֹפְאֶךָ — YHWH Rophekha — El Señor tu sanador','יְהוָה שָׁלוֹם — YHWH Shalom — El Señor es paz','יְהוָה רֹעִי — YHWH Roi — El Señor es mi pastor','יְהוָה צְבָאוֹת — YHWH Tsevaot — El Señor de los ejércitos'], usage:[{label:'6.828 veces',hi:true},{label:'Sal ×695'},{label:'Jer ×719'},{label:'Is ×367'},{label:'Gén ×165'}], notaCultural:`Los masoretas colocaron las vocales de "Adonai" bajo las consonantes YHWH, produciendo la forma híbrida "Yehowah" (→ "YHWH" en español). La pronunciación más probable históricamente es "Yahweh".` },
+
+  'H7307': { num:'H7307', lang:'heb', origLetters:'רוּחַ', translit:'rûaḥ', pronunciacion:'roo-akh', trad:'viento, espíritu, aliento, soplo vital', categoria:'Sustantivo femenino/masculino', def:`Una de las palabras más ricas del vocabulario hebreo. Sus tres sentidos son inseparables: (1) viento — el aliento del aire, la fuerza invisible que mueve; (2) aliento — el principio vital en el ser humano; (3) espíritu — el Espíritu de D-os que da vida, poder y revelación. La misma palabra expresa realidades que en otros idiomas se separan.`, usoBibliologico:`Rûaḥ Elohim = el Espíritu de D-os. Aparece en Gén 1:2 como fuerza creadora que "se movía" (merajefet — como ave empollando) sobre las aguas. Juan 3:8 usa el equivalente griego πνεῦμα jugando con la misma ambigüedad viento/espíritu.`, roots:[{ num:'H7306', letters:'רוּחַ', lang:'heb', translit:'rûaḥ (verbo)', trad:'oler, percibir, respirar', def:'Raíz verbal. La conexión entre respirar y el principio vital es central en el pensamiento hebreo.' }], frasesRelacionadas:['רוּחַ אֱלֹהִים — Ruaj Elohim — Espíritu de D-os','רוּחַ הַקֹּדֶשׁ — Ruaj HaKodesh — Espíritu Santo','רוּחַ יְהוָה — Ruaj YHWH — Espíritu del Señor'], usage:[{label:'378 veces',hi:true},{label:'Sal ×51'},{label:'Is ×51'},{label:'Ez ×52'},{label:'Gén ×15'}], notaCultural:`En hebreo no existe distinción entre "viento", "aliento" y "espíritu" — todo es ruaj. El Espíritu de D-os es tan real y activo como el viento, invisible pero innegable en sus efectos.` },
+
+  'H7462': { num:'H7462', lang:'heb', origLetters:'רָעָה', translit:'rāʿāh', pronunciacion:'raw-aw', trad:'pastorear, apacentar, cuidar del rebaño, ser compañero íntimo', categoria:'Verbo Qal', def:`Verbo de rico contenido relacional: (1) en sentido literal, pastorear ovejas — guiarlas a pastos, protegerlas, conocerlas individualmente; (2) metafóricamente, gobernar y cuidar a un pueblo con ternura; (3) en sentido derivado, ser amigo íntimo. El pastor hebreo no conducía desde atrás sino que iba delante y el rebaño lo seguía porque conocían su voz.`, usoBibliologico:`El Salmo 23 abre "YHWH rōʿî" — YHWH es mi pastor (participio de rāʿāh). Juan 10 usa el equivalente griego ποιμήν: Yahshua es el "buen pastor" que conoce a sus ovejas por nombre.`, roots:[{ num:'H7453', letters:'רֵעַ', lang:'heb', translit:'rēaʿ', trad:'prójimo, amigo, compañero íntimo', def:'De la misma raíz. El mandamiento "amarás a tu prójimo" usa esta palabra. Pastorear y ser amigo comparten raíz — el cuidado verdadero es siempre íntimo.' }, { num:'H4829', letters:'מִרְעֶה', lang:'heb', translit:'mirʿeh', trad:'pastizal, lugar de pasto', def:'Los pastizales donde el pastor lleva al rebaño — imagen del descanso provisto por D-os.' }], frasesRelacionadas:['יְהוָה רֹעִי — YHWH roʿî — El Señor es mi pastor','רֹעֶה יִשְׂרָאֵל — Roeh Israel — Pastor de Israel (Sal 80:1)'], usage:[{label:'173 veces',hi:true},{label:'Sal ×12'},{label:'Ez ×26'},{label:'Jer ×11'},{label:'Gén ×20'}] },
+
+  'H2617': { num:'H2617', lang:'heb', origLetters:'חֶסֶד', translit:'ḥesed', pronunciacion:'kheh-sed', trad:'amor leal del pacto, misericordia fiel, bondad inagotable', categoria:'Sustantivo masculino', def:`Considerada la palabra más intraducible del hebreo. Ninguna palabra española o griega la captura completamente. Es el amor que fluye de un pacto — leal, activo, que no abandona, que cumple sus compromisos incluso cuando el otro falla. No es meramente sentimiento sino acción comprometida. Incluye: lealtad, bondad, misericordia, gracia, amor constante.`, usoBibliologico:`Ḥesed es el amor de D-os en acción pactual. Aparece 245 veces. En Éx 34:6-7, la auto-revelación de D-os incluye "abundante en ḥesed". El Sal 136 repite "ki leolam jasdô" (porque para siempre es su ḥesed) 26 veces. En el NT, χάρις (G5485, gracia) y ἀγάπη (G26, amor) juntas intentan capturar este concepto.`, roots:[{ num:'H2623', letters:'חָסִיד', lang:'heb', translit:'ḥāsîd', trad:'piadoso, leal al pacto, santo', def:'Derivado de ḥesed. El "jasid" es la persona que vive en ḥesed — leal, misericordiosa, comprometida. De aquí el movimiento jasídico judío.' }], frasesRelacionadas:['חֶסֶד וֶאֱמֶת — ḥesed veʾemet — amor leal y verdad fiel (par inseparable)','כִּי לְעוֹלָם חַסְדּוֹ — para siempre es su amor leal (Sal 136)'], usage:[{label:'245 veces',hi:true},{label:'Sal ×127'},{label:'Is ×17'},{label:'Gén ×19'},{label:'Rut ×5'}], notaCultural:`Rut es el libro del ḥesed: Rut muestra ḥesed hacia Noemí, Booz hacia Rut, D-os a través de ambos. Ilustra perfectamente que el ḥesed divino actúa a través del ḥesed humano.` },
+
+  'H8451': { num:'H8451', lang:'heb', origLetters:'תּוֹרָה', translit:'tôrāh', pronunciacion:'to-raw', trad:'instrucción, dirección, enseñanza — la Torá', categoria:'Sustantivo femenino', def:`Comúnmente traducida "ley" pero esta traducción es insuficiente. La raíz H3384 (yarah) significa "apuntar, indicar la dirección, enseñar". La Torá no es primariamente un código legal sino la instrucción de un Padre a sus hijos — la dirección de vida para el pueblo del pacto.`, usoBibliologico:`El Sal 119 (176 versículos) celebra la Torá — no como carga sino como deleite (v.97: "¡Cuánto amo yo tu torá!"). Yahshua dice en Mat 5:17: "No vine a abolir la Torá sino a cumplirla."`, roots:[{ num:'H3384', letters:'יָרָה', lang:'heb', translit:'yārāh', trad:'apuntar, lanzar, enseñar, instruir', def:'Raíz verbal. El que da la Torá es el maestro que apunta en la dirección correcta de vida.' }], frasesRelacionadas:['תּוֹרַת מֹשֶׁה — Torat Moshe — la Torá de Moisés','תּוֹרַת יְהוָה — Torat YHWH — la Torá del Señor'], usage:[{label:'219 veces',hi:true},{label:'Sal ×25'},{label:'Dt ×22'},{label:'Is ×13'},{label:'Prov ×8'}] },
+
+  'G26': { num:'G26', lang:'gre', origLetters:'ἀγάπη', translit:'agápē', pronunciacion:'ag-ah-pay', trad:'amor incondicional, amor divino, amor de elección', categoria:'Sustantivo femenino', def:`La palabra más distintiva del griego cristiano. El griego antiguo tenía cuatro palabras para amor: ἔρως (romántico/pasional), στοργή (familiar/natural), φιλία (amistad/afecto), y ἀγάπη (amor de elección incondicional). Los traductores de la LXX eligieron ἀγάπη para traducir el hebreo ḥesed (H2617) — llenando una palabra casi sin uso con todo el peso bibliológico del amor pactual hebreo.`, usoBibliologico:`1 Juan 4:8: "ὁ θεὸς ἀγάπη ἐστίν" — D-os ES amor. No solo que D-os ama, sino que su esencia misma es ἀγάπη. 1 Corintios 13 es el himno de la ἀγάπη — no un sentimiento sino una serie de acciones concretas. Juan 21:15-17 usa el juego entre ἀγάπη y φιλία en el diálogo con Pedro.`, roots:[{ num:'G25', letters:'ἀγαπάω', lang:'gre', translit:'agapáō', trad:'amar incondicionalmente, elegir amar', def:'Verbo raíz. Amar por decisión de voluntad, no por emoción natural. La forma verbal del amor divino activo.' }, { num:'G27', letters:'ἀγαπητός', lang:'gre', translit:'agapētós', trad:'amado, muy querido', def:'Adjetivo derivado. Usado de Yahshua en el bautismo: "Este es mi Hijo ἀγαπητός" (Mat 3:17) — el Amado por excelencia.' }], frasesRelacionadas:['ἀγάπη τοῦ θεοῦ — agape tou theou — el amor de D-os','ὁ θεὸς ἀγάπη ἐστίν — D-os es amor (1Jn 4:8)','ἀγαπᾶτε ἀλλήλους — amaos los unos a los otros'], usage:[{label:'116 veces',hi:true},{label:'1Jn ×18'},{label:'Juan ×7'},{label:'Rom ×9'},{label:'1Cor ×9'}], notaCultural:`Los "ágapes" eran las comidas comunitarias de la iglesia primitiva donde se celebraba la Cena del Señor — el nombre mismo del rito expresaba amor incondicional que trascendía clases sociales.` },
+
+  'G1080': { num:'G1080', lang:'gre', origLetters:'γεννάω', translit:'gennáō', pronunciacion:'ghen-nah-o', trad:'engendrar, nacer, dar a luz, generar', categoria:'Verbo', def:`Verbo que describe el proceso completo del nacimiento: (1) desde el padre — engendrar, concebir; (2) desde la madre — dar a luz, traer al mundo. En sentido espiritual, Yahshua lo usa en Juan 3 para describir el nuevo nacimiento: nacer "desde arriba" (ἄνωθεν — G509 — que también puede leerse "de nuevo"). Nicodemo entiende el sentido literal; Yahshua habla del espiritual.`, usoBibliologico:`El debate histórico sobre Juan 3:3: ¿γεννηθῇ ἄνωθεν significa "nacer de nuevo" o "nacer desde arriba"? La ambigüedad es intencional — ambos sentidos son verdad. En 1 Juan 2:29 y 5:1 la forma perfecta (γεγεννημένος) indica un nuevo nacimiento que tuvo lugar y permanece activo.`, roots:[{ num:'G1085', letters:'γένος', lang:'gre', translit:'génos', trad:'raza, linaje, familia, descendencia', def:'Sustantivo raíz. El linaje del que uno nace determina su identidad. El nuevo nacimiento crea un nuevo γένος — una nueva familia de D-os.' }, { num:'G1074', letters:'γενεά', lang:'gre', translit:'geneá', trad:'generación, edad, descendientes', def:'De la misma familia. Cada generación (geneá) es el resultado de un nacer (gennáō).' }, { num:'G1096', letters:'γίνομαι', lang:'gre', translit:'gínomai', trad:'llegar a ser, existir, acontecer', def:'Verbo relacionado por raíz. El nacer es el momento del llegar a ser — el paso de la no-existencia a la existencia.' }], frasesRelacionadas:['γεννηθῆναι ἄνωθεν — nacer de nuevo / desde arriba (Juan 3:3)','γεγεννημένος ἐκ τοῦ θεοῦ — nacido de D-os','γένεσις — genesis — origen, nacimiento'], usage:[{label:'97 veces',hi:true},{label:'Mat ×25'},{label:'Juan ×18'},{label:'Luc ×9'},{label:'Gál ×4'}], notaCultural:`La metáfora del nuevo nacimiento era revolucionaria en el judaísmo del siglo I. Yahshua la aplica a un maestro de Israel como Nicodemo, indicando que el nuevo nacimiento es necesario para todos sin excepción.` },
+
+  'G3056': { num:'G3056', lang:'gre', origLetters:'λόγος', translit:'lógos', pronunciacion:'log-os', trad:'palabra, razón, discurso, el Verbo — principio racional divino', categoria:'Sustantivo masculino', def:`La palabra más filosófica y bibliológicamente cargada del NT. En la filosofía griega (Heráclito, los estoicos), el Λόγος era el principio racional que ordenaba el universo. En el judaísmo helenístico (Filón), era el intermediario entre D-os trascendente y el mundo material. Juan 1:1 toma este concepto y lo revoluciona: el Λόγος no es un principio abstracto sino una Persona — y esa Persona se hizo carne (v.14).`, usoBibliologico:`El Prólogo de Juan (1:1-18) presenta la El Ungidología más alta del NT. Tres declaraciones: (1) "En el principio era el Λόγος" — preexistencia eterna; (2) "el Λόγος era con D-os" — distinción personal; (3) "el Λόγος era D-os" — identidad divina plena.`, roots:[{ num:'G3004', letters:'λέγω', lang:'gre', translit:'légō', trad:'hablar, decir, afirmar', def:'Verbo raíz. El Λόγος es "lo dicho", la expresión articulada del pensamiento divino. Yahshua como Λόγος es la Palabra definitiva de D-os.' }, { num:'G3053', letters:'λογισμός', lang:'gre', translit:'logismós', trad:'razonamiento, pensamiento, argumento', def:'Derivado. La dimensión racional del Λόγος — el pensamiento articulado, la lógica.' }], frasesRelacionadas:['ἐν ἀρχῇ ἦν ὁ λόγος — en el principio era el Verbo (Juan 1:1)','ὁ λόγος σὰρξ ἐγένετο — el Verbo se hizo carne','ὁ λόγος τοῦ θεοῦ — la Palabra de D-os'], usage:[{label:'330 veces',hi:true},{label:'Juan ×40'},{label:'Hech ×65'},{label:'Ap ×19'},{label:'Rom ×11'}] },
+
+  'G4151': { num:'G4151', lang:'gre', origLetters:'πνεῦμα', translit:'pneûma', pronunciacion:'pnyoo-mah', trad:'espíritu, aliento, viento, el Espíritu Santo', categoria:'Sustantivo neutro', def:`Equivalente griego del hebreo רוּחַ (H7307, ruaj). Mantiene la misma triple ambigüedad: (1) viento/brisa — movimiento de aire invisible; (2) aliento vital; (3) espíritu — la dimensión no-material de la persona y, supremamente, el Espíritu de D-os. Juan 3:8 explota deliberadamente la ambigüedad: "El πνεῦμα sopla donde quiere... así es todo el que ha nacido del πνεῦμα."`, usoBibliologico:`Πνεῦμα ἅγιον (Espíritu Santo) aparece 91 veces en el NT. En Juan 14-16 Yahshua lo llama Παράκλητος (G3875 — Consolador/Abogado). Pablo desarrolla la bibliología del Espíritu en Romanos 8 y Gálatas 5 (el fruto del Espíritu).`, roots:[{ num:'G4154', letters:'πνέω', lang:'gre', translit:'pnéō', trad:'soplar (del viento)', def:'Verbo raíz. El espíritu/viento sopla. Misma raíz de neumático, neumología.' }, { num:'G3875', letters:'παράκλητος', lang:'gre', translit:'paráklētos', trad:'consolador, abogado, intercesor', def:'Nombre del Espíritu Santo en Juan 14. Literalmente: el llamado a estar al lado (para + kaleō). El que siempre está a nuestro lado.' }], frasesRelacionadas:['πνεῦμα ἅγιον — Espíritu Santo','πνεῦμα τοῦ θεοῦ — Espíritu de D-os','ὁ καρπὸς τοῦ πνεύματος — el fruto del Espíritu (Gál 5:22)'], usage:[{label:'385 veces',hi:true},{label:'Hech ×70'},{label:'Rom ×34'},{label:'Juan ×24'},{label:'1Cor ×40'}] },
+
+  'G2316': { num:'G2316', lang:'gre', origLetters:'θεός', translit:'theós', pronunciacion:'theh-os', trad:'D-os, deidad, el ser divino supremo', categoria:'Sustantivo masculino', def:`El nombre primario para D-os en el Nuevo Pacto. Equivalente griego del hebreo אֱלֹהִים (H430). Con artículo definido (ὁ θεός) siempre se refiere al D-os único, el Padre. Sin artículo puede referirse a la naturaleza divina (Juan 1:1c: "el Λόγος era θεός" — de naturaleza divina). La distinción articular en Juan 1:1 es bibliológicamente precisa.`, usoBibliologico:`Juan 1:1 presenta la El Ungidología más alta: Yahshua como θεός. Tito 2:13 y 2 Pedro 1:1 lo llaman explícitamente "nuestro gran θεός y Salvador." Tomás en Juan 20:28 exclama "ὁ κύριός μου καὶ ὁ θεός μου" (mi Señor y mi D-os).`, roots:[{ num:'G2304', letters:'θεῖος', lang:'gre', translit:'theîos', trad:'divino, de naturaleza divina', def:'Adjetivo derivado de θεός. 2 Ped 1:4: participantes de la naturaleza divina.' }, { num:'G2305', letters:'θειότης', lang:'gre', translit:'theiótēs', trad:'divinidad, naturaleza divina', def:'Sustantivo abstracto. Rom 1:20: la divinidad eterna de D-os visible en la creación.' }], frasesRelacionadas:['ὁ θεὸς ἀγάπη ἐστίν — D-os es amor (1Jn 4:8)','θεὸς ἐν σαρκί — D-os en carne (1Tim 3:16)','υἱὸς θεοῦ — Hijo de D-os'], usage:[{label:'1.317 veces',hi:true},{label:'Juan ×83'},{label:'Rom ×153'},{label:'Hech ×166'},{label:'1Cor ×106'}] },
+
+  'G5485': { num:'G5485', lang:'gre', origLetters:'χάρις', translit:'kháris', pronunciacion:'khar-ece', trad:'gracia, favor inmerecido, don gratuito, encanto', categoria:'Sustantivo femenino', def:`Una de las palabras más transformadoras del NT. En el griego secular significaba elegancia o un favor hecho a alguien. En el NT recibe un significado radicalmente nuevo: el favor absolutamente inmerecido de D-os hacia pecadores. No es premio a la virtud sino don a los indignos. La χάρις divina es la fuente de la salvación (Ef 2:8-9), del ministerio (Rom 12:6), de la fuerza en la debilidad (2 Cor 12:9).`, usoBibliologico:`Pablo usa χάρις como contrapunto exacto de ἔργα (obras): "Si es por gracia, ya no es por obras" (Rom 11:6). Juan 1:14 dice que el Logos estaba lleno de "χάρις καὶ ἀλήθεια" — ecos del hebreo ḥesed veʾemet (H2617).`, roots:[{ num:'G5463', letters:'χαίρω', lang:'gre', translit:'khaírō', trad:'alegrarse, regocijarse', def:'Verbo raíz. La gracia y el gozo tienen la misma raíz — la χάρις de D-os produce χαρά (G5479, gozo) en quien la recibe.' }, { num:'G5479', letters:'χαρά', lang:'gre', translit:'khará', trad:'gozo, alegría, deleite', def:'Derivado. El gozo que nace de experimentar la gracia divina.' }, { num:'G5486', letters:'χάρισμα', lang:'gre', translit:'khárisma', trad:'don espiritual, regalo gratuito', def:'Los dones espirituales son "regalos de gracia" — expresiones concretas de la χάρις divina en el creyente.' }], frasesRelacionadas:['χάρις καὶ εἰρήνη — gracia y paz','τῇ χάριτι ἐστε σεσῳσμένοι — por gracia sois salvos (Ef 2:8)','χάρις ἀντὶ χάριτος — gracia sobre gracia (Juan 1:16)'], usage:[{label:'155 veces',hi:true},{label:'Rom ×24'},{label:'2Cor ×18'},{label:'Gál ×7'},{label:'Ef ×12'}] },
+
+  'G1515': { num:'G1515', lang:'gre', origLetters:'εἰρήνη', translit:'eirḗnē', pronunciacion:'i-ray-nay', trad:'paz, armonía, plenitud — equivale al hebreo שָׁלוֹם (shalom)', categoria:'Sustantivo femenino', def:`En el griego clásico significaba principalmente la ausencia de guerra. Los traductores de la LXX la eligieron para traducir שָׁלוֹם (H7965, shalom) — y con esa decisión la enriquecieron enormemente. El shalom hebreo no es solo ausencia de conflicto sino presencia positiva de bienestar total: salud, prosperidad, relaciones correctas, plenitud de vida.`, usoBibliologico:`Yahshua es "nuestra εἰρήνη" (Ef 2:14). Fil 4:7 habla de "la paz de D-os que sobrepasa todo entendimiento". Juan 14:27: "Mi εἰρήνη os dejo; no como el mundo la da." Rom 5:1: justificados por la fe, tenemos εἰρήνη para con D-os.`, roots:[{ num:'H7965', letters:'שָׁלוֹם', lang:'heb', translit:'shālôm', trad:'paz, bienestar, plenitud, integridad', def:'Equivalente hebreo. El shalom bíblico es el estado de plenitud y armonía en todas las dimensiones: con D-os, consigo mismo, con otros, con la creación.' }], frasesRelacionadas:['εἰρήνη ὑμῖν — paz a ustedes (saludo de resurrección de Yahshua)','εἰρηνοποιοί — los que hacen la paz (Mat 5:9 — bienaventuranzas)'], usage:[{label:'92 veces',hi:true},{label:'Rom ×10'},{label:'Juan ×6'},{label:'Ef ×8'},{label:'Luc ×14'}] },
+
+  'G4102': { num:'G4102', lang:'gre', origLetters:'πίστις', translit:'pístis', pronunciacion:'pis-tis', trad:'fe, confianza, lealtad fiel, creer comprometido', categoria:'Sustantivo femenino', def:`Πίστις incluye: (1) creencia intelectual — asentimiento a que algo es verdad; (2) confianza personal — entrega de uno mismo a una persona; (3) lealtad fiel — fidelidad constante al comprometido. En el NT la fe salvadora es las tres dimensiones juntas — no solo creer que Yahshua existió, sino confiar en él personalmente y permanecer leal a él.`, usoBibliologico:`"El justo vivirá por πίστεως" (Rom 1:17; Hab 2:4) es el versículo central de la bibliología paulina. Hebreos 11:1 define πίστις: "es la sustancia/garantía de lo que se espera". Santiago 2:17 dice que la πίστις sin obras está muerta — no contradice a Pablo sino que describe la fe genuina que incluye lealtad activa.`, roots:[{ num:'G4100', letters:'πιστεύω', lang:'gre', translit:'pisteúō', trad:'creer, confiar, comprometerse con', def:'Verbo raíz. El verbo "creer" aparece 98 veces en Juan — siempre en forma verbal activa, nunca como sustantivo. Juan enfatiza la fe como acción continua.' }, { num:'G4103', letters:'πιστός', lang:'gre', translit:'pistós', trad:'fiel, confiable, digno de confianza', def:'Adjetivo derivado. D-os es πιστός (1 Cor 1:9) — fiel a sus promesas.' }], frasesRelacionadas:['ἡ πίστις σου σέσωκέν σε — tu fe te ha salvado','ἐκ πίστεως εἰς πίστιν — de fe en fe (Rom 1:17)'], usage:[{label:'243 veces',hi:true},{label:'Rom ×40'},{label:'Gál ×22'},{label:'Heb ×32'},{label:'Sant ×16'}] },
+
+  'G2222': { num:'G2222', lang:'gre', origLetters:'ζωή', translit:'zōḗ', pronunciacion:'dzo-ay', trad:'vida — especialmente la vida divina, eterna y abundante', categoria:'Sustantivo femenino', def:`El griego distinguía entre βίος (G979, bíos — la vida biológica) y ζωή (zōḗ — la vida en su principio esencial, la vida como don de D-os). En el NT ζωή designa especialmente la "vida eterna" (ζωὴ αἰώνιος) — no principalmente larga duración sino calidad divina de vida. Es la vida de D-os mismo comunicada al creyente, que comienza ahora y no tiene fin.`, usoBibliologico:`Juan 10:10: "Vine para que tengan ζωή y la tengan en abundancia." Juan 14:6: "Yo soy el camino, la verdad y la ζωή." 1 Juan 5:12: "El que tiene al Hijo tiene la ζωή." La ζωή αἰώνιος es una realidad presente: Juan 5:24 dice "ya ha pasado de muerte a ζωή".`, roots:[{ num:'G2198', letters:'ζάω', lang:'gre', translit:'záō', trad:'vivir, estar vivo, tener vida', def:'Verbo raíz. La ζωή es la sustantivación del vivir — la "vivencia" misma en su plenitud divina.' }, { num:'G2227', letters:'ζωοποιέω', lang:'gre', translit:'zōopoiéō', trad:'dar vida, vivificar', def:'Compuesto de ζωή + ποιέω (hacer). El Espíritu Santo es ζωοποιόν (Juan 6:63) — el que da vida.' }], frasesRelacionadas:['ζωὴ αἰώνιος — vida eterna','ἄρτος τῆς ζωῆς — pan de vida (Juan 6:35)','ὕδωρ ζωῆς — agua de vida (Juan 4:14)'], usage:[{label:'135 veces',hi:true},{label:'Juan ×36'},{label:'Rom ×13'},{label:'Ap ×17'},{label:'1Jn ×13'}] },
+
+  'G4982': { num:'G4982', lang:'gre', origLetters:'σῴζω', translit:'sōzō', pronunciacion:'sode-zo', trad:'salvar, sanar, liberar, rescatar, preservar íntegro', categoria:'Verbo', def:`El verbo de salvación del NT cubre un campo semántico más amplio que el español "salvar". Incluye: (1) salvar de peligro físico o muerte; (2) sanar de enfermedades (Mat 9:22 — "tu fe te ha sanado/salvado"); (3) liberar del poder del pecado (Mat 1:21); (4) preservar para la vida eterna. La salvación bíblica es integral — cuerpo, alma y espíritu.`, usoBibliologico:`"Llamarás su nombre YAHSHUA (Yehoshúa = YHWH salva) porque él σώσει a su pueblo de sus pecados" (Mat 1:21). Cuando Yahshua sana dice ἡ πίστις σου σέσωκέν σε — usando σῴζω para la sanidad física como signo de la salvación integral.`, roots:[{ num:'G4991', letters:'σωτηρία', lang:'gre', translit:'sōtēría', trad:'salvación, liberación, sanidad', def:'Sustantivo derivado. La realidad completa de lo que D-os hace en σῴζω: liberación integral.' }, { num:'G4990', letters:'σωτήρ', lang:'gre', translit:'sōtḗr', trad:'Salvador, Libertador', def:'"Kyrios kai Sōtēr" (Señor y Salvador) era un título imperial romano — el NT lo reivindica exclusivamente para Yahshua.' }], frasesRelacionadas:['ἡ πίστις σου σέσωκέν σε — tu fe te ha salvado','τοῖς σῳζομένοις — a los que se salvan (presente continuo — 1Cor 1:18)'], usage:[{label:'106 veces',hi:true},{label:'Luc ×17'},{label:'Juan ×6'},{label:'Hech ×13'},{label:'Rom ×8'}] }
+};
+
+// ═══════════════════════════════════════════════
+//  DATA — VERSÍCULOS (muestra funcional)
+// ═══════════════════════════════════════════════
+const VERSES_DATA_ANNOTATED = {
+  gen: {
+    1: [
+      { v:1,  text:'En el {principio|H7225} {creó|H1254} {D-os|H430} los {cielos|H8064} y la {tierra|H776}.' },
+      { v:2,  text:'Y la tierra estaba {desordenada|H8414} y {vacía|H922}, y las tinieblas estaban sobre la faz del {abismo|H8415}; y el {Espíritu|H7307} de D-os se movía sobre la faz de las {aguas|H4325}.' },
+      { v:3,  text:'Y dijo {D-os|H430}: Sea la {luz|H216}; y fue la luz.' },
+      { v:4,  text:'Y vio D-os que la luz era {buena|H2896}; y separó D-os la luz de las tinieblas.' },
+      { v:26, text:'Entonces dijo D-os: Hagamos al {hombre|H120} a nuestra {imagen|H6754}, conforme a nuestra {semejanza|H1823}.' },
+      { v:27, text:'Y {creó|H1254} D-os al hombre a su imagen, a imagen de D-os lo creó; varón y hembra los creó.' },
+    ],
+    2: [
+      { v:1, text:'Fueron, pues, acabados los {cielos|H8064} y la {tierra|H776}, y todo el ejército de ellos.' },
+      { v:7, text:'Entonces YHWH D-os formó al {hombre|H120} del {polvo|H6083} de la tierra, y sopló en su nariz {aliento|H5397} de vida, y fue el hombre un ser {viviente|H2416}.' },
+    ]
+  },
+  jhn: {
+    3: [
+      { v:1,  text:'Había un hombre de los {fariseos|G5330} que se llamaba {Nicodemo|G3530}, un principal entre los judíos.' },
+      { v:2,  text:'Este vino a Yahshua de noche, y le dijo: {Rabí|G4461}, sabemos que has venido de D-os como {maestro|G1320}; porque nadie puede hacer estas señales que tú haces, si no está D-os con él.' },
+      { v:3,  text:'Respondió Yahshua y le dijo: De cierto, de cierto te digo, que el que no {naciere|G1080} de {nuevo|G509}, no puede ver el reino de D-os.' },
+      { v:16, text:'Porque de tal manera {amó|G25} {D-os|G2316} al mundo, que ha dado a su Hijo {unigénito|G3439}, para que todo aquel que en él {cree|G4100}, no se pierda, mas tenga {vida|G2222} eterna.' },
+      { v:17, text:'Porque no envió D-os a su Hijo al mundo para {condenar|G2919} al mundo, sino para que el mundo sea {salvo|G4982} por él.' },
+    ],
+    1: [
+      { v:1, text:'En el {principio|G746} era el {Verbo|G3056}, y el Verbo era con {D-os|G2316}, y el Verbo era D-os.' },
+      { v:14,text:'Y aquel Verbo fue hecho {carne|G4561}, y habitó entre nosotros (y vimos su {gloria|G1391}, gloria como del unigénito del Padre), lleno de {gracia|G5485} y de verdad.' },
+    ]
+  },
+  psa: {
+    23: [
+      { v:1, text:'YHWH es mi {pastor|H7462}; nada me {faltará|H2637}.' },
+      { v:2, text:'En lugares de {delicados pastos|H1877} me hará {descansar|H7257}; junto a {aguas de reposo|H4496} me pastoreará.' },
+      { v:4, text:'Aunque ande en {valle de sombra|H6733} de muerte, no temeré mal alguno, porque tú estarás conmigo; tu {vara|H7626} y tu {cayado|H4938} me infundirán aliento.' },
+      { v:6, text:'Ciertamente el {bien|H2896} y la {misericordia|H2617} me seguirán todos los días de mi vida, y en la casa de YHWH moraré por largos días.' },
+    ],
+    1: [
+      { v:1, text:'Bienaventurado el varón que no anduvo en {consejo|H6098} de {malos|H7563}, ni estuvo en camino de {pecadores|H2400}, ni en silla de {escarnecedores|H3887} se ha sentado.' },
+      { v:2, text:'Sino que en la {ley|H8451} de YHWH está su {delicia|H2656}, y en su ley {medita|H1897} de día y de noche.' },
+    ]
+  },
+  rom: {
+    8: [
+      { v:1, text:'Ahora, pues, ninguna {condenación|G2631} hay para los que están en El Ungido Yahshua, los que no andan conforme a la carne, sino conforme al {Espíritu|G4151}.' },
+      { v:28,text:'Y sabemos que a los que {aman|G25} a D-os, todas las cosas les {ayudan|G4903} a bien, esto es, a los que conforme a su {propósito|G4286} son llamados.' },
+      { v:38,text:'Por lo cual estoy {seguro|G3982} de que ni la {muerte|G2288}, ni la {vida|G2222}, ni ángeles, ni principados, ni potestades, ni lo presente, ni lo por venir, ni lo alto, ni lo profundo, ni ninguna otra cosa creada nos podrá separar del {amor|G26} de D-os, que es en El Ungido Yahshua Señor nuestro.' },
+    ]
+  }
+};
+
+// getGenericVerses reemplazada por getVerseData()
+
+// ═══════════════════════════════════════════════
+//  BIBLIA RVR1960 — CARGA LAZY POR TESTAMENTO
+//  bible_at.json (AT) y bible_nt.json (NT) se cargan
+//  solo cuando el usuario abre un libro por primera vez
+// ═══════════════════════════════════════════════
+let VERSES_DATA_FULL = {};
+let _atLoaded = false, _ntLoaded = false;
+let _atLoading = null, _ntLoading = null;
+
+const AT_SET = new Set(['gen','exo','lev','num','deu','jos','jdg','rut',
+  '1sa','2sa','1ki','2ki','1ch','2ch','ezr','neh','est','job','psa','pro',
+  'ecc','sng','isa','jer','lam','eze','dan','hos','joe','amo','oba','jon',
+  'mic','nah','hab','zep','hag','zec','mal']);
+
+async function loadBibleIfNeeded(bookId) {
+  const isAT = AT_SET.has(bookId);
+  if (isAT  && _atLoaded) return;
+  if (!isAT && _ntLoaded) return;
+  if (isAT  && _atLoading) return _atLoading;
+  if (!isAT && _ntLoading) return _ntLoading;
+  const file = isAT ? 'bible_at.json' : 'bible_nt.json';
+  const label = isAT ? 'Antiguo Pacto' : 'Pacto Renovado';
+  splashMsg('Cargando ' + label + '...');
+  document.getElementById('splash').style.display = 'flex';
+  document.getElementById('splash').style.opacity = '1';
+  const promise = fetch(file)
+    .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(data => {
+      Object.assign(VERSES_DATA_FULL, data);
+      if (isAT) { _atLoaded = true; _atLoading = null; }
+      else       { _ntLoaded = true; _ntLoading = null; }
+      hideSplash();
+    })
+    .catch(e => {
+      console.error('Error cargando', file, e);
+      if (isAT) _atLoading = null; else _ntLoading = null;
+      hideSplash();
+    });
+  if (isAT) _atLoading = promise; else _ntLoading = promise;
+  return promise;
+}
+
+async function decompressBible() { return Promise.resolve(); }
+function getVerseData(bookId, chapter) {
+  // Primero buscar en datos anotados con Strong
+  const annotated = VERSES_DATA_ANNOTATED[bookId];
+  if (annotated && annotated[chapter]) return annotated[chapter];
+  // Biblia completa — arrays de strings
+  const full = VERSES_DATA_FULL[bookId];
+  const chapStr = String(chapter);
+  if (full && full[chapStr]) {
+    return full[chapStr].map((text, i) => ({ v: i + 1, text }));
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════════════
+let state = {
+  covenant: 'old',
+  currentBook: null,
+  currentChapter: 1,
+  activeScreen: 'bible',
+  notes: JSON.parse(localStorage.getItem('el-lugar-notes') || '[]'),
+  editingNoteId: null,
+};
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+function hideSplash() {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  splash.style.transition = 'opacity 0.5s';
+  splash.style.opacity = '0';
+  setTimeout(() => { splash.style.display = 'none'; }, 520);
+}
+
+function splashMsg(msg) {
+  const el = document.getElementById('splash-msg');
+  if (el) el.textContent = msg;
+}
+
+window.addEventListener('load', () => {
+  try { renderBookGrid(); } catch(e) { console.error(e); }
+  try { renderNotes();    } catch(e) { console.error(e); }
+  hideSplash();
+});
+
+
+// ═══════════════════════════════════════════════
+//  COVENANT SWITCH
+// ═══════════════════════════════════════════════
+function switchCovenant(c) {
+  state.covenant = c;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (c==='old'&&i===0)||(c==='new'&&i===1)));
+  if (state.activeScreen !== 'bible') showScreen('bible', document.querySelector('.nav-btn'));
+  state.currentBook = null;
+  renderBookGrid();
+}
+
+// ═══════════════════════════════════════════════
+//  BOOK GRID
+// ═══════════════════════════════════════════════
+function renderBookGrid() {
+  const grid = document.getElementById('book-grid');
+  const books = BOOKS[state.covenant];
+  grid.innerHTML = books.map(b => `
+    <div class="book-card ${state.currentBook?.id===b.id?'active-book':''}" onclick="openBook('${b.id}')">
+      <div class="book-heb ${b.lang==='gre'?'gre':''}">${b.heb}</div>
+      <div class="book-translit">${b.translit}</div>
+      <div class="book-trad">${b.trad}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════
+//  OPEN BOOK → muestra selector de capítulos
+// ═══════════════════════════════════════════════
+function openBook(id) {
+  const books = [...BOOKS.old, ...BOOKS.new];
+  state.currentBook = books.find(b => b.id === id);
+  renderChapterSelector();
+  document.getElementById('screen-bible').classList.remove('active');
+  document.getElementById('screen-chapters').classList.add('active');
+}
+
+function renderChapterSelector() {
+  const b = state.currentBook;
+  const isGre = b.lang === 'gre';
+
+  // Header con nombre del libro
+  const heb = document.getElementById('chap-sel-heb');
+  heb.textContent = b.heb;
+  heb.className = 'reader-nav-heb' + (isGre ? ' gre-title' : '');
+  document.getElementById('chap-sel-sub').textContent = `${b.translit} · ${b.es}`;
+
+  // Saber qué capítulos tienen datos reales
+  const chapData = VERSES_DATA[b.id] || {};
+
+  // Letras hebreas/griegas para capítulos
+  const hebNums = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י',
+                   'יא','יב','יג','יד','טו','טז','יז','יח','יט','כ',
+                   'כא','כב','כג','כד','כה','כו','כז','כח','כט','ל'];
+  const greNums = ['α','β','γ','δ','ε','ζ','η','θ','ι','ια',
+                   'ιβ','ιγ','ιδ','ιε','ιστ','ιζ','ιη','ιθ','κ','κα',
+                   'κβ','κγ','κδ','κε','κστ','κζ','κη','κθ','λ','λα'];
+
+  const container = document.getElementById('chapter-grid-container');
+  container.innerHTML = `
+    <div class="chap-book-info">
+      <div class="chap-book-heb ${isGre?'gre':''}">${b.heb}</div>
+      <div class="chap-book-translit">${b.translit}</div>
+      <div class="chap-book-trad">${b.trad}</div>
+      <div class="chap-book-es">${b.es}</div>
+      <div class="chap-count-label">${b.chapters} capítulo${b.chapters!==1?'s':''}</div>
+    </div>
+    <div class="chapter-grid">
+      ${Array.from({length: b.chapters}, (_,i) => {
+        const n = i + 1;
+        const hasData = !!chapData[n];
+        const small = isGre
+          ? (greNums[i] || n)
+          : (hebNums[i] || n);
+        return `
+          <div class="chap-btn ${hasData?'has-data':''}" onclick="openChapter(${n})">
+            <div class="chap-btn-num">${n}</div>
+            <div class="chap-btn-heb ${isGre?'gre':''}">${small}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function openChapter(n) {
+  state.currentChapter = n;
+  // Cargar la Biblia del testamento si no está cargada
+  await loadBibleIfNeeded(state.currentBook.id);
+  renderReader();
+  document.getElementById('screen-chapters').classList.remove('active');
+  document.getElementById('screen-reader').classList.add('active');
+}
+
+function goBack() {
+  // Desde el lector vuelve al selector de capítulos
+  document.getElementById('screen-reader').classList.remove('active');
+  document.getElementById('screen-chapters').classList.add('active');
+}
+
+function goBackToBooks() {
+  // Desde el selector de capítulos vuelve a los libros
+  document.getElementById('screen-chapters').classList.remove('active');
+  document.getElementById('screen-bible').classList.add('active');
+  renderBookGrid();
+}
+
+// ═══════════════════════════════════════════════
+//  READER
+// ═══════════════════════════════════════════════
+function renderReader() {
+  const b = state.currentBook;
+  const isGre = b.lang === 'gre';
+  const hTitle = document.getElementById('reader-heb-title');
+  hTitle.textContent = b.heb + ' ' + (isGre ? state.currentChapter : toHebrewNumeral(state.currentChapter));
+  hTitle.className = 'reader-nav-heb' + (isGre ? ' gre-title' : '');
+  document.getElementById('reader-sub-title').textContent = `${b.translit} · ${b.es} ${state.currentChapter}`;
+  document.getElementById('chap-label').textContent = `Capítulo ${state.currentChapter} de ${b.chapters}`;
+  renderVerses();
+}
+
+function toHebrewNumeral(n) {
+  const nums = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י'];
+  return n <= 10 ? nums[n-1] : n;
+}
+
+function changeChapter(dir) {
+  const b = state.currentBook;
+  const next = state.currentChapter + dir;
+  if (next < 1 || next > b.chapters) return;
+  state.currentChapter = next;
+  renderReader();
+  document.getElementById('verses-container').scrollTop = 0;
+}
+
+function renderVerses() {
+  const b = state.currentBook;
+  const verses = getVerseData(b.id, state.currentChapter) || [];
+  if (!verses.length) return;
+  const container = document.getElementById('verses-container');
+  container.innerHTML = verses.map(v => `
+    <div class="verse-row">
+      <span class="verse-num">${v.v}</span>
+      <span class="verse-text">${parseVerseText(v.text)}</span>
+    </div>
+  `).join('');
+}
+
+function parseVerseText(text) {
+  return text.replace(/\{([^|]+)\|([HG]\d+)\}/g, (_, word, code) =>
+    `<span class="strong-word" onclick="showStrong('${code}','${word}')">${word}</span>`
+  );
+}
+
+// ═══════════════════════════════════════════════
+//  STRONG PANEL
+// ═══════════════════════════════════════════════
+function showStrong(code, word) {
+  document.querySelectorAll('.strong-word').forEach(el => el.classList.remove('highlighted'));
+  event.target.classList.add('highlighted');
+  const data = STRONG_DATA[code];
+  const content = document.getElementById('strong-content');
+  if (!data) {
+    content.innerHTML = `
+      <div class="sp-header">
+        <div class="sp-badges"><div class="sp-num">${code}</div></div>
+        <button class="sp-close" onclick="closeStrong()">×</button>
+      </div>
+      <div class="sp-word-es">Palabra: <strong>"${word}"</strong></div>
+      <div class="sp-orig-block">
+        <div style="color:var(--text2);font-size:17px;padding:12px 0;">Referencia Strong ${code}<br>
+        <span style="font-size:15px;">Esta entrada estará en la base de datos completa.</span></div>
+      </div>`;
+  } else {
+    const isGre = data.lang === 'gre';
+    content.innerHTML = `
+      <div class="sp-header">
+        <div class="sp-badges">
+          <div class="sp-num">${data.num}</div>
+          <div class="sp-lang">${isGre ? '🔤 Griego · Pacto Renovado' : '🔤 Hebreo · Antiguo Pacto'}</div>
+        </div>
+        <button class="sp-close" onclick="closeStrong()">×</button>
+      </div>
+
+      <div class="sp-word-es">Palabra: <strong>"${word}"</strong>${data.categoria ? ` <span style="color:var(--text3);font-size:15px;">· ${data.categoria}</span>` : ''}</div>
+
+      <div class="sp-orig-block">
+        <div class="sp-orig-letters ${isGre?'gre':'heb'}">${data.origLetters}</div>
+        <div class="sp-translit-trad">
+          ${data.translit}
+          ${data.pronunciacion ? `<span style="color:var(--text3);font-size:15px;margin-left:8px;">[${data.pronunciacion}]</span>` : ''}
+          <br><span class="${isGre?'trad-gre':'trad'}" style="font-size:19px;">${data.trad}</span>
+        </div>
+      </div>
+
+      <div class="sp-section">
+        <div class="sp-section-title">📖 Definición completa</div>
+        <div class="sp-def">${data.def}</div>
+      </div>
+
+      ${data.usoBibliologico ? `
+      <hr class="sp-divider">
+      <div class="sp-section">
+        <div class="sp-section-title">✡️ Uso bibliológico</div>
+        <div class="sp-def" style="color:#b8c8e8;">${data.usoBibliologico}</div>
+      </div>` : ''}
+
+      <hr class="sp-divider">
+      <div class="sp-section">
+        <div class="sp-section-title">🌱 Raíces etimológicas</div>
+        ${(data.roots||[]).map(r => `
+          <div class="sp-root">
+            <div class="sp-root-top">
+              <div class="sp-root-num">${r.num}</div>
+              <div class="sp-root-letters ${r.lang==='gre'?'gre':'heb'}">${r.letters}</div>
+              <button class="sp-root-link" onclick="showStrong('${r.num}','${r.letters}')">→ Ver ${r.num}</button>
+            </div>
+            <div class="sp-root-sub">${r.translit} <span class="sep">—</span> <span class="trad">${r.trad}</span></div>
+            <div class="sp-root-def">${r.def}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      ${data.frasesRelacionadas?.length ? `
+      <hr class="sp-divider">
+      <div class="sp-section">
+        <div class="sp-section-title">🔗 Frases y expresiones</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          ${data.frasesRelacionadas.map(f => `
+            <div style="background:#0f0f28;border-radius:10px;padding:12px 16px;font-size:17px;color:var(--text2);line-height:1.65;">${f}</div>
+          `).join('')}
+        </div>
+      </div>` : ''}
+
+      <hr class="sp-divider">
+      <div class="sp-section">
+        <div class="sp-section-title">📊 Frecuencia en las Escrituras</div>
+        <div class="sp-usage">${(data.usage||[]).map(u => `<span class="sp-tag ${u.hi?'hi':''}">${u.label}</span>`).join('')}</div>
+      </div>
+
+      ${data.notaCultural ? `
+      <hr class="sp-divider">
+      <div class="sp-section">
+        <div class="sp-section-title">🏛️ Contexto histórico-cultural</div>
+        <div class="sp-def" style="color:#a0b0c0;font-style:italic;">${data.notaCultural}</div>
+      </div>` : ''}
+
+      <hr class="sp-divider">
+      <div class="sp-section">
+        <div class="sp-section-title">📝 Agregar nota personal</div>
+        <button class="btn btn-secondary" style="font-size:16px;width:100%;" onclick="openNoteEditor('${code} ${data.origLetters} · ${word}')">+ Agregar nota para ${data.num} — "${word}"</button>
+      </div>`;
+  }
+  document.getElementById('strong-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+
+function closeStrong() {
+  document.getElementById('strong-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.querySelectorAll('.strong-word').forEach(el => el.classList.remove('highlighted'));
+}
+
+// ═══════════════════════════════════════════════
+//  SEARCH
+// ═══════════════════════════════════════════════
+function doSearch(query) {
+  const container = document.getElementById('search-results');
+  if (!query || query.length < 2) {
+    container.innerHTML = '<p style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center;">Escribe para buscar en toda la Biblia</p>';
+    return;
+  }
+  const q = query.toLowerCase();
+  const results = [];
+  const allBooks = [...BOOKS.old, ...BOOKS.new];
+  // Buscar primero en anotados, luego en completa
+  // Combinar Biblia completa (arrays) + anotados (objetos con Strong)
+  const allBooks = [...BOOKS.old, ...BOOKS.new];
+  const allData = {};
+  // Primero cargar la Biblia completa convirtiendo al formato {v,text}
+  for (const [bookId, chapters] of Object.entries(VERSES_DATA_FULL)) {
+    allData[bookId] = {};
+    for (const [chapStr, verses] of Object.entries(chapters)) {
+      allData[bookId][chapStr] = verses.map((text, i) => ({ v: i+1, text }));
+    }
+  }
+  // Sobrescribir capítulos anotados (tienen Strong)
+  for (const [k, chapObj] of Object.entries(VERSES_DATA_ANNOTATED)) {
+    if (!allData[k]) allData[k] = {};
+    for (const [chapNum, verses] of Object.entries(chapObj)) {
+      allData[k][String(chapNum)] = verses;
+    }
+  }
+  for (const [bookId, chapters] of Object.entries(allData)) {
+    const book = allBooks.find(b => b.id === bookId);
+    for (const [ch, verses] of Object.entries(chapters)) {
+      for (const v of verses) {
+        const plain = v.text.replace(/\{([^|]+)\|[HG]\d+\}/g,'$1');
+        if (plain.toLowerCase().includes(q)) {
+          const highlighted = plain.replace(new RegExp(`(${query})`, 'gi'), '<em>$1</em>');
+          const strongCodes = [...v.text.matchAll(/\{[^|]+\|([HG]\d+)\}/g)].map(m=>m[1]).join(' · ');
+          results.push({ ref:`${book?.es||bookId} ${ch}:${v.v}`, text: highlighted, strong: strongCodes, bookId, ch, vn:v.v });
+        }
+      }
+    }
+  }
+  if (!results.length) {
+    container.innerHTML = `<p style="color:var(--text3);font-size:13px;padding:20px 0;text-align:center;">Sin resultados para "<strong style="color:var(--text)">${query}</strong>"</p>`;
+    return;
+  }
+  container.innerHTML = `
+    <div class="search-count">${results.length} resultado${results.length!==1?'s':''} para <span>"${query}"</span></div>
+    ${results.map(r => `
+      <div class="result-card" onclick="openSearchResult('${r.bookId}',${r.ch})">
+        <div class="result-ref">${r.ref}</div>
+        <div class="result-text">${r.text}</div>
+        ${r.strong ? `<div class="result-strong">${r.strong}</div>` : ''}
+      </div>
+    `).join('')}`;
+}
+
+function openSearchResult(bookId, ch) {
+  const allBooks = [...BOOKS.old, ...BOOKS.new];
+  state.currentBook = allBooks.find(b => b.id === bookId);
+  state.currentChapter = parseInt(ch);
+  state.covenant = BOOKS.old.find(b=>b.id===bookId) ? 'old' : 'new';
+  renderReader();
+  // Ocultar todas las pantallas y mostrar el lector directamente
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-reader').classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.nav-btn[onclick*="\'bible\'"]').classList.add('active');
+  state.activeScreen = 'bible';
+}
+
+// ═══════════════════════════════════════════════
+//  NOTES
+// ═══════════════════════════════════════════════
+function renderNotes() {
+  const list = document.getElementById('notes-list');
+  if (!state.notes.length) {
+    list.innerHTML = '<p style="color:var(--text3);font-size:14px;padding:30px 0;text-align:center;">Aún no tenés notas.<br>Tocá + para agregar una.</p>';
+    return;
+  }
+  list.innerHTML = state.notes.map((n,i) => `
+    <div class="note-card" onclick="openNoteEditor(null,${i})">
+      <div class="note-ref">${n.ref || 'Sin referencia'}</div>
+      <div class="note-body">${n.text}</div>
+      <div class="note-date">${n.date}</div>
+    </div>
+  `).join('');
+}
+
+function openNoteEditor(ref, index = null) {
+  state.editingNoteId = index;
+  const modal = document.getElementById('note-modal');
+  const title = document.getElementById('note-modal-title');
+  const textarea = document.getElementById('note-textarea');
+  if (index !== null && state.notes[index]) {
+    title.textContent = 'Editar Nota — ' + (state.notes[index].ref || '');
+    textarea.value = state.notes[index].text;
+  } else {
+    title.textContent = ref ? `Nueva Nota — ${ref}` : 'Nueva Nota';
+    textarea.value = '';
+    if (ref) title.dataset.ref = ref;
+  }
+  modal.classList.add('open');
+  closeStrong();
+  setTimeout(() => textarea.focus(), 300);
+}
+
+function closeNoteEditor() {
+  document.getElementById('note-modal').classList.remove('open');
+}
+
+function saveNote() {
+  const text = document.getElementById('note-textarea').value.trim();
+  if (!text) return;
+  const title = document.getElementById('note-modal-title');
+  const ref = title.dataset.ref || (state.currentBook ? `${state.currentBook.es} ${state.currentChapter}` : '');
+  const date = new Date().toLocaleDateString('es-AR', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+  if (state.editingNoteId !== null && state.notes[state.editingNoteId]) {
+    state.notes[state.editingNoteId].text = text;
+    state.notes[state.editingNoteId].date = date;
+  } else {
+    state.notes.unshift({ ref, text, date });
+  }
+  localStorage.setItem('el-lugar-notes', JSON.stringify(state.notes));
+  renderNotes();
+  closeNoteEditor();
+}
+
+// ═══════════════════════════════════════════════
+//  SCREEN NAVIGATION
+// ═══════════════════════════════════════════════
+function showScreen(name, btn) {
+  if (name === 'config') { alert('⚙️ Configuración próximamente:\n• Tamaño de fuente\n• Modo día/noche\n• Idioma de interfaz'); return; }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  if (name === 'bible') {
+    if (state.currentBook) {
+      document.getElementById('screen-reader').classList.add('active');
+    } else {
+      document.getElementById('screen-bible').classList.add('active');
+    }
+  } else if (name === 'community') {
+    document.getElementById('screen-community').classList.add('active');
+    initCommunity();
+  } else {
+    document.getElementById(`screen-${name}`)?.classList.add('active');
+  }
+  document.querySelector(`.nav-btn[onclick*="'${name}'"]`)?.classList.add('active');
+  state.activeScreen = name;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  COMUNIDAD — FORO EN TIEMPO REAL
+//  Usa window.storage compartido entre todos los usuarios
+// ═══════════════════════════════════════════════════════════════
+
+// Código del pastor/líder — cambiarlo para tu comunidad
+const LEADER_CODE = 'ELLUGARLIDER2025';
+
+// Estado comunidad
+let comm = {
+  userName: localStorage.getItem('el-lugar-username') || null,
+  isLeader: localStorage.getItem('el-lugar-isleader') === 'true',
+  currentTopicId: null,
+  currentReplyMsgId: null,
+  topics: [],
+  pollInterval: null,
+};
+
+// ── INIT ──
+async function initCommunity() {
+  if (!comm.userName) {
+    openNameModal();
+    return;
+  }
+  await loadTopics();
+  updateOnlineStatus();
+  // Polling cada 8 segundos para mensajes nuevos
+  if (comm.pollInterval) clearInterval(comm.pollInterval);
+  comm.pollInterval = setInterval(async () => {
+    if (state.activeScreen === 'community') {
+      await loadTopics();
+      if (comm.currentTopicId) await loadMessages(comm.currentTopicId);
+      updateOnlineStatus();
+    }
+  }, 8000);
+  // Mostrar botón nuevo tema si es líder
+  document.getElementById('new-topic-btn').style.display = comm.isLeader ? 'block' : 'none';
+}
+
+// ── NOMBRE Y ACCESO ──
+function openNameModal() {
+  document.getElementById('name-modal').classList.add('open');
+  setTimeout(() => document.getElementById('name-input').focus(), 300);
+}
+
+async function confirmName() {
+  const input = document.getElementById('name-input').value.trim();
+  if (!input || input.length < 2) {
+    document.getElementById('name-input').style.borderColor = 'var(--accent)';
+    return;
+  }
+  // Verificar si es líder (código especial al final del nombre)
+  let finalName = input;
+  let isLeader = false;
+  if (input.includes('|')) {
+    const parts = input.split('|');
+    if (parts[1].trim() === LEADER_CODE) {
+      finalName = parts[0].trim();
+      isLeader = true;
+    }
+  }
+  comm.userName = finalName;
+  comm.isLeader = isLeader;
+  localStorage.setItem('el-lugar-username', finalName);
+  localStorage.setItem('el-lugar-isleader', isLeader.toString());
+  document.getElementById('name-modal').classList.remove('open');
+
+  // Registrar presencia en el storage compartido
+  try {
+    await window.storage.set(`online:${finalName}`, Date.now().toString(), true);
+  } catch(e) {}
+
+  await initCommunity();
+}
+
+// ── PRESENCIA EN LÍNEA ──
+async function updateOnlineStatus() {
+  try {
+    // Registrar que estamos en línea
+    await window.storage.set(`online:${comm.userName}`, Date.now().toString(), true);
+    // Listar quién está en línea (activo en últimos 30s)
+    const keys = await window.storage.list('online:', true);
+    if (!keys) return;
+    const now = Date.now();
+    let onlineCount = 0;
+    for (const key of (keys.keys || [])) {
+      try {
+        const r = await window.storage.get(key, true);
+        if (r && (now - parseInt(r.value)) < 30000) onlineCount++;
+      } catch(e) {}
+    }
+    const el = document.getElementById('online-count');
+    if (el) el.innerHTML = `<span class="online-dot"></span>${onlineCount} en línea ahora`;
+  } catch(e) {}
+}
+
+// ── TEMAS ──
+async function loadTopics() {
+  try {
+    const keys = await window.storage.list('topic:', true);
+    if (!keys || !keys.keys) {
+      renderTopics([]);
+      return;
+    }
+    const topics = [];
+    for (const key of keys.keys) {
+      try {
+        const r = await window.storage.get(key, true);
+        if (r) topics.push(JSON.parse(r.value));
+      } catch(e) {}
+    }
+    // Ordenar: pinned primero, luego por fecha desc
+    topics.sort((a,b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return b.createdAt - a.createdAt;
+    });
+    comm.topics = topics;
+    renderTopics(topics);
+  } catch(e) {
+    renderTopics([]);
+  }
+}
+
+function renderTopics(topics) {
+  const list = document.getElementById('topics-list');
+  if (!list) return;
+  if (!topics.length) {
+    list.innerHTML = `
+      <div class="empty-community">
+        <div class="empty-icon">🕊️</div>
+        <p>Aún no hay temas de reflexión.<br>
+        ${comm.isLeader ? 'Tocá <strong style="color:var(--accent)">+ Tema</strong> para crear el primero.' :
+        'El pastor pronto publicará temas para reflexionar juntos.'}</p>
+      </div>`;
+    return;
+  }
+  list.innerHTML = topics.map(t => {
+    const msgCount = t.messageCount || 0;
+    const timeAgo = formatTimeAgo(t.createdAt);
+    return `
+    <div class="topic-card ${t.pinned?'pinned':''}" onclick="openTopic('${t.id}')">
+      <div class="topic-card-top">
+        <div class="topic-card-title">${escapeHtml(t.title)}</div>
+        ${t.pinned ? '<div class="topic-pin-badge">📌 FIJADO</div>' : ''}
+      </div>
+      ${t.verse ? `<div class="topic-verse">📖 ${escapeHtml(t.verse)}</div>` : ''}
+      ${t.desc ? `<div class="topic-desc">${escapeHtml(t.desc)}</div>` : ''}
+      <div class="topic-meta">
+        <div class="topic-author">Por <span>${escapeHtml(t.author)}</span> · ${timeAgo}</div>
+        <div class="topic-stats">
+          <div class="topic-stat">💬 <span>${msgCount}</span></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openNewTopic() {
+  document.getElementById('topic-modal').classList.add('open');
+  setTimeout(() => document.getElementById('topic-title-input').focus(), 300);
+}
+function closeTopicModal() {
+  document.getElementById('topic-modal').classList.remove('open');
+  document.getElementById('topic-title-input').value = '';
+  document.getElementById('topic-verse-input').value = '';
+  document.getElementById('topic-desc-input').value = '';
+}
+
+async function createTopic() {
+  const title = document.getElementById('topic-title-input').value.trim();
+  const verse = document.getElementById('topic-verse-input').value.trim();
+  const desc  = document.getElementById('topic-desc-input').value.trim();
+  if (!title) {
+    document.getElementById('topic-title-input').style.borderColor = 'var(--accent)';
+    return;
+  }
+  const id = 'topic:' + Date.now();
+  const topic = {
+    id, title, verse, desc,
+    author: comm.userName,
+    createdAt: Date.now(),
+    messageCount: 0,
+    pinned: false,
+  };
+  try {
+    await window.storage.set(id, JSON.stringify(topic), true);
+    closeTopicModal();
+    await loadTopics();
+  } catch(e) {
+    alert('Error al crear el tema. Intentá de nuevo.');
+  }
+}
+
+// ── HILO DE MENSAJES ──
+async function openTopic(topicId) {
+  comm.currentTopicId = topicId;
+  const topic = comm.topics.find(t => t.id === topicId);
+  if (!topic) return;
+
+  document.getElementById('thread-title-display').textContent = topic.title;
+  document.getElementById('thread-verse-display').textContent = topic.verse || '';
+
+  document.getElementById('community-topics-view').style.display = 'none';
+  const tv = document.getElementById('community-thread-view');
+  tv.style.display = 'flex';
+
+  await loadMessages(topicId);
+  scrollToBottom('thread-messages');
+}
+
+function backToTopics() {
+  comm.currentTopicId = null;
+  document.getElementById('community-thread-view').style.display = 'none';
+  document.getElementById('community-topics-view').style.display = '';
+  loadTopics();
+}
+
+async function loadMessages(topicId) {
+  try {
+    const keys = await window.storage.list(`msg:${topicId}:`, true);
+    if (!keys || !keys.keys) { renderMessages([]); return; }
+    const msgs = [];
+    for (const key of keys.keys) {
+      try {
+        const r = await window.storage.get(key, true);
+        if (r) msgs.push(JSON.parse(r.value));
+      } catch(e) {}
+    }
+    msgs.sort((a,b) => a.createdAt - b.createdAt);
+    renderMessages(msgs);
+  } catch(e) { renderMessages([]); }
+}
+
+function renderMessages(msgs) {
+  const container = document.getElementById('thread-messages');
+  if (!container) return;
+  if (!msgs.length) {
+    container.innerHTML = `<div style="text-align:center;color:var(--text3);font-size:15px;padding:30px 0;">Sé el primero en compartir una reflexión 🙏</div>`;
+    return;
+  }
+  const prevScrollPos = container.scrollTop;
+  const wasAtBottom = container.scrollHeight - container.clientHeight - prevScrollPos < 60;
+
+  container.innerHTML = msgs.map(msg => {
+    const isMine = msg.author === comm.userName;
+    const replyCount = msg.replyCount || 0;
+    const reactions = msg.reactions || {};
+    const EMOJIS = ['👍','🙏','🔥','❤️','✨'];
+    const reactionBtns = EMOJIS.map(e => {
+      const count = (reactions[e] || []).length;
+      const iReacted = (reactions[e] || []).includes(comm.userName);
+      return `<button class="reaction-btn ${iReacted?'active':''}" onclick="toggleReaction('${msg.id}','${e}',event)">
+        ${e}${count > 0 ? `<span class="reaction-count">${count}</span>` : ''}
+      </button>`;
+    }).join('');
+
+    return `
+    <div class="msg-bubble ${isMine?'mine':'others'}">
+      <div class="msg-author">${escapeHtml(msg.author)}</div>
+      ${msg.verse ? `<div class="msg-verse-anchor">📖 ${escapeHtml(msg.verse)}</div>` : ''}
+      <div class="msg-body">${escapeHtml(msg.text).replace(/\n/g,'<br>')}</div>
+      <div class="msg-time">${formatTimeAgo(msg.createdAt)}</div>
+      <div class="msg-reactions-bar">${reactionBtns}</div>
+      <div class="reply-trigger" onclick="openReplies('${msg.id}', event)">
+        💬 ${replyCount > 0 ? `${replyCount} respuesta${replyCount!==1?'s':''}` : 'Responder'}
+      </div>
+    </div>`;
+  }).join('');
+
+  if (wasAtBottom) scrollToBottom('thread-messages');
+}
+
+async function sendMessage() {
+  const input = document.getElementById('thread-input');
+  const text = input.value.trim();
+  if (!text || !comm.currentTopicId) return;
+
+  const topic = comm.topics.find(t => t.id === comm.currentTopicId);
+  const msgId = `msg:${comm.currentTopicId}:${Date.now()}`;
+  const msg = {
+    id: msgId,
+    topicId: comm.currentTopicId,
+    author: comm.userName,
+    text,
+    verse: topic?.verse || '',
+    createdAt: Date.now(),
+    reactions: {},
+    replyCount: 0,
+  };
+  try {
+    await window.storage.set(msgId, JSON.stringify(msg), true);
+    // Actualizar contador del tema
+    if (topic) {
+      topic.messageCount = (topic.messageCount || 0) + 1;
+      await window.storage.set(topic.id, JSON.stringify(topic), true);
+    }
+    input.value = '';
+    input.style.height = 'auto';
+    await loadMessages(comm.currentTopicId);
+    scrollToBottom('thread-messages');
+  } catch(e) {
+    alert('Error al enviar. Intentá de nuevo.');
+  }
+}
+
+function handleMsgKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ── REACCIONES ──
+async function toggleReaction(msgId, emoji, event) {
+  event.stopPropagation();
+  try {
+    const r = await window.storage.get(msgId, true);
+    if (!r) return;
+    const msg = JSON.parse(r.value);
+    if (!msg.reactions) msg.reactions = {};
+    if (!msg.reactions[emoji]) msg.reactions[emoji] = [];
+    const idx = msg.reactions[emoji].indexOf(comm.userName);
+    if (idx >= 0) {
+      msg.reactions[emoji].splice(idx, 1);
+    } else {
+      msg.reactions[emoji].push(comm.userName);
+    }
+    await window.storage.set(msgId, JSON.stringify(msg), true);
+    await loadMessages(comm.currentTopicId);
+  } catch(e) {}
+}
+
+// ── RESPUESTAS ──
+async function openReplies(msgId, event) {
+  if (event) event.stopPropagation();
+  comm.currentReplyMsgId = msgId;
+  try {
+    const r = await window.storage.get(msgId, true);
+    if (!r) return;
+    const msg = JSON.parse(r.value);
+    document.getElementById('replies-modal-title').textContent =
+      `Respuestas a ${msg.author}`;
+    await loadReplies(msgId);
+    document.getElementById('replies-modal').classList.add('open');
+    setTimeout(() => document.getElementById('reply-input').focus(), 300);
+  } catch(e) {}
+}
+
+function closeRepliesModal() {
+  document.getElementById('replies-modal').classList.remove('open');
+  comm.currentReplyMsgId = null;
+}
+
+async function loadReplies(msgId) {
+  const list = document.getElementById('replies-list');
+  try {
+    const keys = await window.storage.list(`reply:${msgId}:`, true);
+    if (!keys || !keys.keys || !keys.keys.length) {
+      list.innerHTML = `<div style="color:var(--text3);font-size:14px;padding:16px 0;text-align:center;">Aún no hay respuestas. ¡Sé el primero!</div>`;
+      return;
+    }
+    const replies = [];
+    for (const key of keys.keys) {
+      try {
+        const r = await window.storage.get(key, true);
+        if (r) replies.push(JSON.parse(r.value));
+      } catch(e) {}
+    }
+    replies.sort((a,b) => a.createdAt - b.createdAt);
+    list.innerHTML = replies.map(rep => `
+      <div class="reply-bubble">
+        <div class="reply-author">${escapeHtml(rep.author)}</div>
+        <div class="reply-body">${escapeHtml(rep.text).replace(/\n/g,'<br>')}</div>
+        <div class="reply-time">${formatTimeAgo(rep.createdAt)}</div>
+      </div>
+    `).join('');
+    list.scrollTop = list.scrollHeight;
+  } catch(e) {
+    list.innerHTML = '';
+  }
+}
+
+async function sendReply() {
+  const input = document.getElementById('reply-input');
+  const text = input.value.trim();
+  if (!text || !comm.currentReplyMsgId) return;
+  const replyId = `reply:${comm.currentReplyMsgId}:${Date.now()}`;
+  const reply = {
+    id: replyId,
+    msgId: comm.currentReplyMsgId,
+    author: comm.userName,
+    text,
+    createdAt: Date.now(),
+  };
+  try {
+    await window.storage.set(replyId, JSON.stringify(reply), true);
+    // Actualizar contador de respuestas en el mensaje
+    const r = await window.storage.get(comm.currentReplyMsgId, true);
+    if (r) {
+      const msg = JSON.parse(r.value);
+      msg.replyCount = (msg.replyCount || 0) + 1;
+      await window.storage.set(comm.currentReplyMsgId, JSON.stringify(msg), true);
+    }
+    input.value = '';
+    input.style.height = 'auto';
+    await loadReplies(comm.currentReplyMsgId);
+    if (comm.currentTopicId) await loadMessages(comm.currentTopicId);
+  } catch(e) {
+    alert('Error al enviar. Intentá de nuevo.');
+  }
+}
+
+// ── UTILIDADES ──
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function formatTimeAgo(ts) {
+  const diff = Date.now() - ts;
+  const min = Math.floor(diff/60000);
+  const hr  = Math.floor(diff/3600000);
+  const day = Math.floor(diff/86400000);
+  if (min < 1)  return 'ahora mismo';
+  if (min < 60) return `hace ${min}m`;
+  if (hr  < 24) return `hace ${hr}h`;
+  if (day < 7)  return `hace ${day}d`;
+  return new Date(ts).toLocaleDateString('es-AR',{day:'numeric',month:'short'});
+}
+
+function scrollToBottom(id) {
+  const el = document.getElementById(id);
+  if (el) setTimeout(() => { el.scrollTop = el.scrollHeight; }, 100);
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// Limpiar polling cuando se cambia de pantalla
+const _origShowScreen = showScreen;
+window._showScreenOrig = showScreen;
+</script>
+</body>
+</html>
