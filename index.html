@@ -389,8 +389,9 @@
     #splash {
       position: fixed; inset: 0; background: var(--bg);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 999; gap: 16px;
+      z-index: 999; gap: 16px; transition: opacity 0.5s;
     }
+    #splash.hidden { opacity: 0 !important; pointer-events: none; display: none !important; }
     #splash img { width: 80px; height: 80px; object-fit: contain; border-radius: 16px; }
     #splash h1 { font-family: 'Space Mono', monospace; color: var(--white); font-size: 20px; letter-spacing: -1px; }
     #splash p { color: var(--accent); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
@@ -827,9 +828,8 @@ let state = {
 function hideSplash() {
   const splash = document.getElementById('splash');
   if (!splash) return;
-  splash.style.transition = 'opacity 0.5s';
   splash.style.opacity = '0';
-  setTimeout(() => { splash.style.display = 'none'; }, 520);
+  setTimeout(() => { splash.classList.add('hidden'); }, 520);
 }
 
 function splashMsg(msg) {
@@ -838,9 +838,14 @@ function splashMsg(msg) {
 }
 
 window.addEventListener('load', () => {
-  try { renderBookGrid(); } catch(e) { console.error(e); }
-  try { renderNotes();    } catch(e) { console.error(e); }
+  try { renderBookGrid(); } catch(e) { console.error('renderBookGrid:', e); }
+  try { renderNotes();    } catch(e) { console.error('renderNotes:', e); }
+  // Ocultar splash — con fallback de seguridad a los 3 segundos
   hideSplash();
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    if (s) s.classList.add('hidden');
+  }, 3000);
 });
 
 
