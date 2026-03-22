@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Biblia El Lugar">
   <meta name="theme-color" content="#0d0d1a">
@@ -1128,9 +1130,6 @@ function doSearch(query) {
   const q = query.toLowerCase();
   const results = [];
   const allBooks = [...BOOKS.old, ...BOOKS.new];
-  // Buscar primero en anotados, luego en completa
-  // Combinar Biblia completa (arrays) + anotados (objetos con Strong)
-  const allBooks = [...BOOKS.old, ...BOOKS.new];
   const allData = {};
   // Primero cargar la Biblia completa convirtiendo al formato {v,text}
   for (const [bookId, chapters] of Object.entries(VERSES_DATA_FULL)) {
@@ -1175,7 +1174,6 @@ function doSearch(query) {
 }
 
 function openSearchResult(bookId, ch) {
-  const allBooks = [...BOOKS.old, ...BOOKS.new];
   state.currentBook = allBooks.find(b => b.id === bookId);
   state.currentChapter = parseInt(ch);
   state.covenant = BOOKS.old.find(b=>b.id===bookId) ? 'old' : 'new';
