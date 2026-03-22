@@ -911,8 +911,8 @@ function renderChapterSelector() {
   heb.className = 'reader-nav-heb' + (isGre ? ' gre-title' : '');
   document.getElementById('chap-sel-sub').textContent = `${b.translit} · ${b.es}`;
 
-  // Saber qué capítulos tienen datos reales
-  const chapData = VERSES_DATA[b.id] || {};
+  // Saber qué capítulos tienen datos anotados con Strong
+  const chapData = VERSES_DATA_ANNOTATED[b.id] || {};
 
   // Letras hebreas/griegas para capítulos
   const hebNums = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י',
