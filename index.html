@@ -875,7 +875,7 @@ function renderBookGrid() {
   const grid = document.getElementById('book-grid');
   const books = BOOKS[state.covenant];
   grid.innerHTML = books.map(b => `
-    <div class="book-card ${state.currentBook?.id===b.id?'active-book':''}" onclick="openBook('${b.id}')">
+    <div class="book-card ${(state.currentBook && state.currentBook.id===b.id?'active-book':'')}" onclick="openBook('${b.id}')">
       <div class="book-heb ${b.lang==='gre'?'gre':''}">${b.heb}</div>
       <div class="book-translit">${b.translit}</div>
       <div class="book-trad">${b.trad}</div>
@@ -887,14 +887,21 @@ function renderBookGrid() {
 //  OPEN BOOK → muestra selector de capítulos
 // ═══════════════════════════════════════════════
 function openBook(id) {
-  const books = [...BOOKS.old, ...BOOKS.new];
-  state.currentBook = books.find(b => b.id === id);
-  renderChapterSelector();
-  document.getElementById('screen-bible').classList.remove('active');
-  document.getElementById('screen-chapters').classList.add('active');
+  try {
+    var books = BOOKS.old.concat(BOOKS.new);
+    state.currentBook = books.find(function(b){ return b.id === id; });
+    if (!state.currentBook) { alert('Libro no encontrado: ' + id); return; }
+    renderChapterSelector();
+    document.getElementById('screen-bible').classList.remove('active');
+    document.getElementById('screen-chapters').classList.add('active');
+  } catch(e) {
+    alert('Error abriendo libro: ' + e.message);
+    console.error(e);
+  }
 }
 
 function renderChapterSelector() {
+  if (!state.currentBook) { console.error('No hay libro seleccionado'); return; }
   const b = state.currentBook;
   const isGre = b.lang === 'gre';
 
@@ -1078,7 +1085,7 @@ function showStrong(code, word) {
         `).join('')}
       </div>
 
-      ${data.frasesRelacionadas?.length ? `
+      ${data.frasesRelacionadas && data.frasesRelacionadas.length ? `
       <hr class="sp-divider">
       <div class="sp-section">
         <div class="sp-section-title">🔗 Frases y expresiones</div>
@@ -1153,7 +1160,7 @@ function doSearch(query) {
         if (plain.toLowerCase().includes(q)) {
           const highlighted = plain.replace(new RegExp(`(${query})`, 'gi'), '<em>$1</em>');
           const strongCodes = [...v.text.matchAll(/\{[^|]+\|([HG]\d+)\}/g)].map(m=>m[1]).join(' · ');
-          results.push({ ref:`${book?.es||bookId} ${ch}:${v.v}`, text: highlighted, strong: strongCodes, bookId, ch, vn:v.v });
+          results.push({ ref:`${(book && book.es ? book.es : bookId)} ${ch}:${v.v}`, text: highlighted, strong: strongCodes, bookId, ch, vn:v.v });
         }
       }
     }
@@ -1260,9 +1267,9 @@ function showScreen(name, btn) {
     document.getElementById('screen-community').classList.add('active');
     initCommunity();
   } else {
-    document.getElementById(`screen-${name}`)?.classList.add('active');
+    var _scr = document.getElementById('screen-'+name); if(_scr) _scr.classList.add('active');
   }
-  document.querySelector(`.nav-btn[onclick*="'${name}'"]`)?.classList.add('active');
+  var _nb = document.querySelector('.nav-btn[onclick*="\''+name+'\'"'); if(_nb) _nb.classList.add('active');
   state.activeScreen = name;
 }
 
@@ -1551,7 +1558,7 @@ async function sendMessage() {
     topicId: comm.currentTopicId,
     author: comm.userName,
     text,
-    verse: topic?.verse || '',
+    verse: (topic && topic.verse ? topic.verse : ''),
     createdAt: Date.now(),
     reactions: {},
     replyCount: 0,
