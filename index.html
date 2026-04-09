@@ -27,6 +27,8 @@
 [data-dark="1"] .cb.rd{background:rgba(75,0,130,.25);}
 [data-dark="1"] .mcard,.scard{background:var(--li2) !important;}
 [data-dark="1"] .mta,.rf-in,.ig input,.ak-in{background:var(--bg-card) !important;color:var(--txt) !important;border-color:var(--border) !important;}
+[data-fs="small"] .vt{font-size:.82rem!important;line-height:1.7}
+[data-fs="large"] .vt{font-size:1.18rem!important;line-height:1.95}
 [data-dark="1"] .mbtn.cn,.rnb{background:var(--bg-card) !important;color:var(--txt) !important;}
 [data-dark="1"] .sri{background:var(--bg-card);}
 
@@ -518,6 +520,7 @@ const S={
   notaEditIdx:null,
   hlTarget:null, // {bookId, cap, vn}
   darkMode:ls('el_dark',false),
+  fontSize:ls('el_fontsize','normal'),
 };
 
 // Código secreto de líder (cambiar aquí para actualizar)
@@ -558,11 +561,18 @@ function applyDark(on){
   sv('el_dark',on);
 }
 
+function applyFontSize(size){
+  document.documentElement.setAttribute('data-fs',size);
+  S.fontSize=size;
+  sv('el_fontsize',size);
+}
+
 // ══════════════════════════════════════════════
 // BOOT
 // ══════════════════════════════════════════════
 window.onload=()=>{
   if(S.darkMode) applyDark(true);
+  if(S.fontSize!=='normal') applyFontSize(S.fontSize);
   setTimeout(()=>{
     document.getElementById('splash').classList.remove('on');
     if(S.user && S.user.n){
@@ -1076,15 +1086,47 @@ function rComunidad(){
       <div class="pt">${p.txt}</div>
       <div class="pref">📖 ${p.ref}</div>
       <div class="pact">
-        <div class="pab" onclick="like(this)">❤️ Me ayudó</div>
-        <div class="pab">💬 Comentar</div>
-        <div class="pab">📤 Compartir</div>
+        <div class="pab" onclick="toggleComentario(${i},this)">💬 Comentar</div>
+        <div class="pab" onclick="compartir('${p.txt.replace(/'/g,"\\'")}','${p.ref}')">📤 Compartir</div>
+      </div>
+      <div id="com-box-${i}" style="display:none;margin-top:10px;border-top:1px solid rgba(197,160,89,.18);padding-top:10px">
+        <div id="com-list-${i}" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="com-in-${i}" type="text" placeholder="Escribe un comentario..." style="flex:1;padding:9px 12px;border:1.5px solid rgba(197,160,89,.38);border-radius:10px;font-family:'Lora',serif;font-size:.8rem;color:var(--txt);background:var(--bg-card);outline:none">
+          <button onclick="enviarComentario(${i})" style="background:var(--ar);color:#fff;border:none;padding:9px 14px;border-radius:10px;font-family:'Cinzel',serif;font-size:.65rem;font-weight:700;cursor:pointer">Enviar</button>
+        </div>
       </div>
     </div>`).join('')}
     <div style="height:20px"></div>
   `;
 }
-function like(el){el.style.color='var(--ca)';el.style.fontWeight='bold'}
+function toggleComentario(i,btn){
+  const box=document.getElementById('com-box-'+i);
+  const visible=box.style.display!=='none';
+  box.style.display=visible?'none':'block';
+  if(!visible) setTimeout(()=>document.getElementById('com-in-'+i)?.focus(),100);
+}
+function enviarComentario(i){
+  const inp=document.getElementById('com-in-'+i);
+  const txt=(inp?.value||'').trim();
+  if(!txt) return;
+  const list=document.getElementById('com-list-'+i);
+  const nombre=S.user.n||'Tú';
+  const div=document.createElement('div');
+  div.style.cssText='padding:7px 0;border-bottom:1px solid rgba(197,160,89,.12);font-size:.78rem;color:var(--txt);font-family:Lora,serif;line-height:1.5';
+  div.innerHTML=`<span style="font-family:Cinzel,serif;font-size:.65rem;font-weight:700;color:var(--ar)">${nombre}</span>  ${txt}`;
+  list.appendChild(div);
+  inp.value='';
+  inp.focus();
+}
+function compartir(txt,ref){
+  const texto=`${ref}\n\n${txt}\n\n— Compartido desde El Lugar · Comunidad`;
+  if(navigator.share){
+    navigator.share({title:'El Lugar · Comunidad',text:texto}).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(texto).then(()=>toast('📋 Copiado al portapapeles')).catch(()=>toast('No se pudo compartir'));
+  }
+}
 
 // ══════════════════════════════════════════════
 // REFLEXIONES DE LÍDERES — FIX #4
@@ -1223,6 +1265,14 @@ function rPerfil(){
       <div class="ss-lb">Versión de la Biblia</div>
       <div class="vs">
         <button class="vb ac">RVR 1960</button>
+      </div>
+    </div>
+    <div class="ss">
+      <div class="ss-lb">Tamaño de Fuente</div>
+      <div class="vs">
+        <button class="vb ${S.fontSize==='small'?'ac':''}" onclick="applyFontSize('small');rPerfil()">Pequeña</button>
+        <button class="vb ${S.fontSize==='normal'?'ac':''}" onclick="applyFontSize('normal');rPerfil()">Normal</button>
+        <button class="vb ${S.fontSize==='large'?'ac':''}" onclick="applyFontSize('large');rPerfil()">Grande</button>
       </div>
     </div>
     <div class="ss">
