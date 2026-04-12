@@ -829,7 +829,6 @@ function subst(txt){
     .replace(/Cristo/g,'El Ungido')
     .replace(/cristo/g,'el ungido')
     .replace(/\bDios\b/g,'D-os')
-    .replace(/\bdios\b/g,'d-os')
     .replace(/\bPaz\b/g,'Shalom')
     .replace(/\bpaz\b/g,'shalom');
 }
@@ -985,7 +984,9 @@ async function showStrong(code,word){
   await ensureStrongs(isG);
   const dict=isG?STRONG_G:STRONG_H;
   if(dict && dict[code]){
-    document.getElementById('s-body').innerHTML=dict[code];
+    const bodyEl=document.getElementById('s-body');
+    bodyEl.innerHTML=dict[code];
+    fixStrongLinks(bodyEl);
     return;
   }
 
@@ -1011,6 +1012,24 @@ async function showStrong(code,word){
 
 function closeStrong(){
   document.getElementById('smod').classList.remove('on');
+}
+
+function fixStrongLinks(bodyEl){
+  bodyEl.querySelectorAll('a[href]').forEach(a=>{
+    const href=a.getAttribute('href')||'';
+    // Patrón dG427, dH123 o #sG4050
+    const m=href.match(/^(?:d|#s)([GH]\d+)$/i);
+    if(m){
+      const code=m[1].toUpperCase();
+      a.removeAttribute('href');
+      a.style.cssText='color:var(--te);cursor:pointer;border-bottom:1px dotted var(--te);font-weight:700';
+      a.onclick=(e)=>{e.preventDefault();e.stopPropagation();showStrong(code,'');};
+    } else {
+      // Links rotos (GK, LouwNida, formas morfológicas, etc.) → desactivar
+      a.removeAttribute('href');
+      a.style.cssText='color:var(--txt2);cursor:default;text-decoration:none;pointer-events:none';
+    }
+  });
 }
 
 // ══════════════════════════════════════════════
@@ -1073,13 +1092,39 @@ const POSTS=[
   {a:'Aarón L.',i:'A',tm:'hace 2 días',txt:'Reflexión: La palabra "Shalom" en hebreo no solo significa paz, sino plenitud y bienestar integral. ¡Que el Shalom del Señor reine en sus vidas!',ref:'Números 6:24-26'},
 ];
 function rComunidad(){
+  // Posts del foro: los de usuario + los estáticos
+  const userPostsHTML=[...S.reflexiones].reverse().filter(r=>r.esForo).map((p,i)=>`
+    <div class="pc fade">
+      <div class="ph">
+        <div class="pa">${(p.autor||'?')[0].toUpperCase()}</div>
+        <div><div class="pan">${p.autor||'Comunidad'}</div><div class="pat">${p.fecha||''}</div></div>
+      </div>
+      ${p.titulo?`<div style="font-family:'Cinzel',serif;font-size:.72rem;font-weight:700;color:var(--ar);margin-bottom:6px">${p.titulo}</div>`:''}
+      <div class="pt">${p.texto}</div>
+      <div class="pact">
+        <div class="pab" onclick="toggleComentario('u${i}',this)">💬 Comentar</div>
+        <div class="pab" onclick="compartir('${p.texto.replace(/'/g,"\\'")}','${(p.titulo||'').replace(/'/g,"\\'")}')">📤 Compartir</div>
+      </div>
+      <div id="com-box-u${i}" style="display:none;margin-top:10px;border-top:1px solid rgba(197,160,89,.18);padding-top:10px">
+        <div id="com-list-u${i}" style="margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="com-in-u${i}" type="text" placeholder="Escribe un comentario..." style="flex:1;padding:9px 12px;border:1.5px solid rgba(197,160,89,.38);border-radius:10px;font-family:'Lora',serif;font-size:.8rem;color:var(--txt);background:var(--bg-card);outline:none">
+          <button onclick="enviarComentario('u${i}')" style="background:var(--ar);color:#fff;border:none;padding:9px 14px;border-radius:10px;font-family:'Cinzel',serif;font-size:.65rem;font-weight:700;cursor:pointer">Enviar</button>
+        </div>
+      </div>
+    </div>`).join('');
+
   document.getElementById('ca').innerHTML=`
     <div class="ch fade">
       <img src="pez.png" class="pez-h" alt="✦" onerror="this.style.display='none'">
       <div class="ch-t">Foro Ictis</div>
       <div class="ch-s">Ἰχθύς · Comunidad de El Lugar</div>
     </div>
-    <div style="padding:14px 15px 8px;font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:3px;color:var(--txt2);text-transform:uppercase;">Publicaciones recientes</div>
+    <div style="padding:14px 15px 8px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:3px;color:var(--txt2);text-transform:uppercase">Publicaciones recientes</div>
+      <button onclick="openForoModal()" style="background:var(--ar);color:#fff;border:none;padding:8px 15px;border-radius:10px;font-family:'Cinzel',serif;font-size:.62rem;font-weight:700;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 14px rgba(75,0,130,.28)">＋ Publicar</button>
+    </div>
+    ${userPostsHTML}
     ${POSTS.map((p,i)=>`
     <div class="pc fade" style="animation-delay:${i*.08}s">
       <div class="ph"><div class="pa">${p.i}</div><div><div class="pan">${p.a}</div><div class="pat">${p.tm}</div></div></div>
@@ -1131,28 +1176,42 @@ function compartir(txt,ref){
 // ══════════════════════════════════════════════
 // REFLEXIONES DE LÍDERES — FIX #4
 // ══════════════════════════════════════════════
+function openForoModal(){
+  document.getElementById('rf-titulo').value='';
+  document.getElementById('rf-ta').value='';
+  document.getElementById('rfmod').querySelector('.mt').textContent=
+    S.user.esLider?'Nueva Publicación (Líder)':'Nueva Publicación';
+  document.getElementById('rfmod').dataset.mode='foro';
+  document.getElementById('rfmod').classList.add('on');
+  setTimeout(()=>document.getElementById('rf-titulo').focus(),200);
+}
 function openRefModal(){
   if(!S.user.esLider){ toast('⚠️ Solo los líderes pueden publicar reflexiones'); return; }
   document.getElementById('rf-titulo').value='';
   document.getElementById('rf-ta').value='';
+  document.getElementById('rfmod').querySelector('.mt').textContent='Nueva Reflexión';
+  document.getElementById('rfmod').dataset.mode='reflexion';
   document.getElementById('rfmod').classList.add('on');
   setTimeout(()=>document.getElementById('rf-titulo').focus(),200);
 }
 function closeRefModal(){document.getElementById('rfmod').classList.remove('on')}
 function saveRef(){
-  if(!S.user.esLider) return;
+  const modo=document.getElementById('rfmod').dataset.mode||'reflexion';
+  if(modo==='reflexion' && !S.user.esLider) return;
   const titulo=document.getElementById('rf-titulo').value.trim();
   const texto=document.getElementById('rf-ta').value.trim();
   if(!texto) return;
   S.reflexiones.push({
     titulo,texto,
-    autor:`${S.user.n} ${S.user.a}`.trim()||'Líder',
+    esForo: modo==='foro',
+    autor:`${S.user.n} ${S.user.a}`.trim()||'Comunidad',
     fecha:new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})
   });
   sv('el_reflexiones',S.reflexiones);
   closeRefModal();
-  toast('✅ Reflexión publicada');
-  if(S.tab==='inicio') rInicio();
+  toast('✅ Publicación enviada al foro');
+  if(S.tab==='comunidad') rComunidad();
+  else if(S.tab==='inicio') rInicio();
 }
 
 // ══════════════════════════════════════════════
