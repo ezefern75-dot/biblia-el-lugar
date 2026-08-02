@@ -1,0 +1,38 @@
+{
+  "title": "El Lugar · Diccionario Strong's Enriquecido",
+  "version": "1.7.1",
+  "date": "2026-08-01",
+  "description": "Strong's STEPBible + glosas ES + raíces filológicas + versículos clave. Coherencia con modo Ictis (Yahshua, YHWH, D-os, El Ungido, shalom). Teología→Bibliología.",
+  "license": "CC BY 4.0 STEPBible/Tyndale → github.com/STEPBible/STEPBible-Data",
+  "policy": "NO Kabbalah. Coherencia Ictis con la Biblia de la App. Bibliología (no Teología).",
+  "ictis_alignment": {
+    "H3068": "YHWH ← Jehová (tetragrámaton)",
+    "H0136": "Adonai, Señor (NO es YHWH)",
+    "H0113": "señor, amo (NO es YHWH)",
+    "G2962": "Señor (contexto: puede representar YHWH o Adonai)",
+    "G2424": "Yahshua ← Jesús",
+    "G5547": "El Ungido, Mashiaj ← Cristo",
+    "H0430": "D-os, Elohim ← Dios",
+    "H7965": "shalom ← paz"
+  },
+  "counts": {
+    "hebrew": 8723,
+    "greek": 10847,
+    "gloss_es_he": 749,
+    "gloss_es_gr": 754,
+    "gloss_es_total": 1503,
+    "lxx_mapped_he": 99,
+    "root_families_he": 265,
+    "key_verses": 200
+  },
+  "changelog": [
+    "1.7.1 — Corrección: YHWH solo = Jehová (H3068); Señor = Adonai/Adon, no YHWH; glosas precisas H3068/H0136/H0113/G2962",
+    "1.7.0 — Coherencia Ictis (Yahshua/YHWH/D-os/El Ungido/shalom); modal aplica subst(); Teología→Bibliología; +748 glosas ES (total ~1500)",
+    "1.6.0 — Glosas y versículos ampliados",
+    "1.5.0 — Raíces hebreas filológicas; anti-cábala",
+    "1.4.0 — Raíces + key verses + UI",
+    "1.3.0–1.0.0 — Base STEPBible e integración"
+  ],
+  "app_version": "1.8.0-test",
+  "note": "Build de prueba para iPhone / GitHub Pages. Incluye realineación Strong + agregados TR tachados + Gn1 y Jn1 auditados."
+}
