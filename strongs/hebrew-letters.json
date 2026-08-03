@@ -1,0 +1,253 @@
+{
+  "title": "Alefato hebreo — referencia lingüística",
+  "version": "1.0.0",
+  "language": "es",
+  "policy": {
+    "includes": [
+      "Nombre de cada letra",
+      "Valor numérico tradicional del alefato (aleph=1 … tav=400)",
+      "Origen acrofónico / pictográfico histórico cuando está documentado",
+      "Notas de morfología (prefijos, matres lectionis, formas finales)"
+    ],
+    "excludes": [
+      "Interpretación mística o cabalística de versículos por suma de letras",
+      "Sefirot, árboles de la vida, notarikon, temurah",
+      "Prácticas derivadas del contacto con sistemas mágicos de Mesopotamia u otros",
+      "Cualquier uso del número de las letras para «descifrar» mensajes ocultos en la Escritura"
+    ],
+    "note_es": "Los valores 1–400 son el sistema tradicional de numeración con letras del alefato (como los números romanos en latín). Se registran aquí como dato del sistema de escritura, no como método de exégesis. Este módulo NO es cábala."
+  },
+  "letters": [
+    {
+      "char": "א",
+      "name_he": "אָלֶף",
+      "name_es": "Álef",
+      "name_lat": "Aleph",
+      "value": 1,
+      "acrophonic": "buey / toro",
+      "note": "Pictograma antiguo asociado al buey. Primera letra del alefato."
+    },
+    {
+      "char": "ב",
+      "name_he": "בֵּית",
+      "name_es": "Bet",
+      "name_lat": "Bet",
+      "value": 2,
+      "acrophonic": "casa",
+      "note": "«Casa». Como prefijo בְּ־ indica «en / con / por»."
+    },
+    {
+      "char": "ג",
+      "name_he": "גִּימֶל",
+      "name_es": "Guímel",
+      "name_lat": "Gimel",
+      "value": 3,
+      "acrophonic": "camello (tradicional)",
+      "note": "Nombre tradicional ligado a «camello»; la forma paleohebrea se discute."
+    },
+    {
+      "char": "ד",
+      "name_he": "דָּלֶת",
+      "name_es": "Dálet",
+      "name_lat": "Dalet",
+      "value": 4,
+      "acrophonic": "puerta",
+      "note": "«Puerta». Forma angular en escritura paleohebrea."
+    },
+    {
+      "char": "ה",
+      "name_he": "הֵא",
+      "name_es": "He",
+      "name_lat": "He",
+      "value": 5,
+      "acrophonic": "ventana / interjección",
+      "note": "Artículo definido הַ־ / הָ־; también sufijo femenino y de dirección ־ָה."
+    },
+    {
+      "char": "ו",
+      "name_he": "וָו",
+      "name_es": "Vav",
+      "name_lat": "Vav",
+      "value": 6,
+      "acrophonic": "clavo / gancho",
+      "note": "Conjunción «y» (וְ־); mater lectionis para /o/ y /u/."
+    },
+    {
+      "char": "ז",
+      "name_he": "זַיִן",
+      "name_es": "Záyin",
+      "name_lat": "Zayin",
+      "value": 7,
+      "acrophonic": "arma / herramienta",
+      "note": "Tradicionalmente «arma» o utensilio."
+    },
+    {
+      "char": "ח",
+      "name_he": "חֵית",
+      "name_es": "Jet",
+      "name_lat": "Chet",
+      "value": 8,
+      "acrophonic": "cerca / muro",
+      "note": "Fricativa faríngea /ḥ/. Distinta de ה y de כ."
+    },
+    {
+      "char": "ט",
+      "name_he": "טֵית",
+      "name_es": "Tet",
+      "name_lat": "Tet",
+      "value": 9,
+      "acrophonic": "envoltorio / serpiente (discutido)",
+      "note": "Enfática /ṭ/. No confundir con ת."
+    },
+    {
+      "char": "י",
+      "name_he": "יוֹד",
+      "name_es": "Yod",
+      "name_lat": "Yod",
+      "value": 10,
+      "acrophonic": "mano",
+      "note": "«Mano». Prefijo de imperfecto; mater lectionis para /i/."
+    },
+    {
+      "char": "כ",
+      "name_he": "כַּף",
+      "name_es": "Kaf",
+      "name_lat": "Kaf",
+      "value": 20,
+      "acrophonic": "palma de la mano",
+      "note": "Prefijo כְּ־ «como». Forma final: ך (value 20)."
+    },
+    {
+      "char": "ל",
+      "name_he": "לָמֶד",
+      "name_es": "Lámed",
+      "name_lat": "Lamed",
+      "value": 30,
+      "acrophonic": "aguijada / bastón de pastor",
+      "note": "Prefijo לְ־ «a / para». Muy frecuente en morfología."
+    },
+    {
+      "char": "מ",
+      "name_he": "מֵם",
+      "name_es": "Mem",
+      "name_lat": "Mem",
+      "value": 40,
+      "acrophonic": "agua",
+      "note": "Prefijo מִ־ / מֵ־ «de / desde». Forma final: ם."
+    },
+    {
+      "char": "נ",
+      "name_he": "נוּן",
+      "name_es": "Nun",
+      "name_lat": "Nun",
+      "value": 50,
+      "acrophonic": "pez / serpiente (tradicional)",
+      "note": "Prefijo de imperfecto 1ª pl. y otras formas. Forma final: ן."
+    },
+    {
+      "char": "ס",
+      "name_he": "סָמֶךְ",
+      "name_es": "Sámej",
+      "name_lat": "Samekh",
+      "value": 60,
+      "acrophonic": "apoyo / sostén",
+      "note": "Sibilante /s/. Distinta de שׂ (sin) y שׁ (shin)."
+    },
+    {
+      "char": "ע",
+      "name_he": "עַיִן",
+      "name_es": "Áyin",
+      "name_lat": "Ayin",
+      "value": 70,
+      "acrophonic": "ojo",
+      "note": "Consonante faríngea /ʿ/. No se confunde con א en hebreo bíblico."
+    },
+    {
+      "char": "פ",
+      "name_he": "פֵּא",
+      "name_es": "Pe",
+      "name_lat": "Pe",
+      "value": 80,
+      "acrophonic": "boca",
+      "note": "Prefijo de algunas formas. Forma final: ף."
+    },
+    {
+      "char": "צ",
+      "name_he": "צָדִי",
+      "name_es": "Tsadi",
+      "name_lat": "Tsadi",
+      "value": 90,
+      "acrophonic": "anzuelo / planta (discutido)",
+      "note": "Enfática /ṣ/. Forma final: ץ."
+    },
+    {
+      "char": "ק",
+      "name_he": "קוֹף",
+      "name_es": "Qof",
+      "name_lat": "Qof",
+      "value": 100,
+      "acrophonic": "nuca / aguja (tradicional)",
+      "note": "Uvular /q/. Distinta de כ /k/."
+    },
+    {
+      "char": "ר",
+      "name_he": "רֵישׁ",
+      "name_es": "Resh",
+      "name_lat": "Resh",
+      "value": 200,
+      "acrophonic": "cabeza",
+      "note": "«Cabeza». Muy frecuente en raíces (ראשׁ, etc.)."
+    },
+    {
+      "char": "ש",
+      "name_he": "שִׁין / שִׂין",
+      "name_es": "Shin / Sin",
+      "name_lat": "Shin",
+      "value": 300,
+      "acrophonic": "diente",
+      "note": "שׁ /š/ y שׂ /s/ se distinguen por el punto. Prefijo relativo שֶׁ־ en hebreo tardío."
+    },
+    {
+      "char": "ת",
+      "name_he": "תָּו",
+      "name_es": "Tav",
+      "name_lat": "Tav",
+      "value": 400,
+      "acrophonic": "marca / signo",
+      "note": "«Marca, señal». Sufijo de femenino y de 2ª persona en verbos."
+    }
+  ],
+  "final_forms": [
+    {
+      "char": "ך",
+      "name_es": "Kaf sofit",
+      "base": "כ",
+      "value": 20
+    },
+    {
+      "char": "ם",
+      "name_es": "Mem sofit",
+      "base": "מ",
+      "value": 40
+    },
+    {
+      "char": "ן",
+      "name_es": "Nun sofit",
+      "base": "נ",
+      "value": 50
+    },
+    {
+      "char": "ף",
+      "name_es": "Pe sofit",
+      "base": "פ",
+      "value": 80
+    },
+    {
+      "char": "ץ",
+      "name_es": "Tsadi sofit",
+      "base": "צ",
+      "value": 90
+    }
+  ],
+  "how_to_decompose": "Dada una palabra hebrea del lema Strong, se listan sus letras de derecha a izquierda (orden de lectura hebreo), con nombre, valor tradicional y nota acrofónica. La suma se muestra solo como dato aritmético del sistema de letras, sin aplicación mística."
+}

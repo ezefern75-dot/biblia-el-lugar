@@ -1,0 +1,15 @@
+{
+  "version": "1.9.0",
+  "title": "El Lugar — Diccionario Strong + Alefato",
+  "language": "es",
+  "notes": [
+    "Fichas hebreas enriquecidas en castellano (raíz, cognados, LXX, citas)",
+    "hebrew-letters.json: valores tradicionales del alefato + acrofónico (NO cábala)",
+    "Nombres sagrados alineados (YHWH, Yahshua, etc.)"
+  ],
+  "files": {
+    "strongs-hebrew": "strongs/strongs-hebrew.json",
+    "strongs-greek": "strongs/strongs-greek.json",
+    "hebrew-letters": "strongs/hebrew-letters.json"
+  }
+}
